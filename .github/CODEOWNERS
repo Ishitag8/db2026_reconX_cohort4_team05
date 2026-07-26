@@ -1,0 +1,8 @@
+# Default owner
+*               @team-lead-handle
+
+# Day-wise ownership
+backend/        @team-lead-handle @backend-lead-handle
+frontend/       @team-lead-handle @frontend-lead-handle
+db/             @team-lead-handle @db-lead-handle
+.github/        @team-lead-handle

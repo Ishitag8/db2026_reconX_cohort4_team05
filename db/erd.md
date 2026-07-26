@@ -24,7 +24,7 @@ erDiagram
         varchar asset_class
         char currency
         char isin UK
-        jsonb metadata "ADV009"
+        jsonb metadata "TICKET-ADV009"
     }
 
     TRADES {
@@ -36,7 +36,7 @@ erDiagram
         varchar side
         numeric quantity
         numeric price
-        date trade_date "PARTITION KEY (ADV007)"
+        date trade_date "PARTITION KEY (TICKET-ADV007)"
         varchar status
         timestamp deleted_at "ADV067 soft delete"
         timestamp created_at

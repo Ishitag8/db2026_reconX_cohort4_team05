@@ -18,7 +18,7 @@
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
     <changeSet id="001-init-tag" author="trainer">
-        <tagDatabase tag="v1.0.0-init"/>
+        <tagDatabase tag="release-1.0"/>
     </changeSet>
 
 </databaseChangeLog>

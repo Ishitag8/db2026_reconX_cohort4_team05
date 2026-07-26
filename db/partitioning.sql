@@ -26,13 +26,16 @@ CREATE TABLE trades (
     PRIMARY KEY (id, trade_date)
 ) PARTITION BY RANGE (trade_date);
 
--- 3. Per-month partitions (12-month rolling window). Add new ones on schedule.
+-- 3. Per-month partitions for Day 1 verification window.
+CREATE TABLE trades_y2026m04 PARTITION OF trades
+    FOR VALUES FROM ('2026-04-01') TO ('2026-05-01');
 CREATE TABLE trades_y2026m05 PARTITION OF trades
     FOR VALUES FROM ('2026-05-01') TO ('2026-06-01');
 CREATE TABLE trades_y2026m06 PARTITION OF trades
     FOR VALUES FROM ('2026-06-01') TO ('2026-07-01');
 CREATE TABLE trades_y2026m07 PARTITION OF trades
     FOR VALUES FROM ('2026-07-01') TO ('2026-08-01');
+CREATE TABLE trades_default PARTITION OF trades DEFAULT;
 
 -- 4. Migrate data
 INSERT INTO trades SELECT * FROM trades_legacy;

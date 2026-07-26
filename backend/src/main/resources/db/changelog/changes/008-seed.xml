@@ -17,7 +17,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
-    <changeSet id="008-seed-counterparties" author="trainer">
+    <changeSet id="008-seed-counterparties" author="trainer" context="dev,test">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM counterparties</sqlCheck>
+        </preConditions>
         <loadData file="data/counterparties.csv" tableName="counterparties"
                   separator="," relativeToChangelogFile="true">
             <column name="id" type="NUMERIC"/>
@@ -30,7 +33,10 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-instruments" author="trainer">
+    <changeSet id="008-seed-instruments" author="trainer" context="dev,test">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM instruments</sqlCheck>
+        </preConditions>
         <loadData file="data/instruments.csv" tableName="instruments"
                   separator="," relativeToChangelogFile="true">
             <column name="id" type="NUMERIC"/>
@@ -45,7 +51,73 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-users" author="trainer">
+    <changeSet id="008-seed-instruments-generated" author="trainer" context="dev,test">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <dbms type="postgresql"/>
+                <sqlCheck expectedResult="15">SELECT COUNT(*) FROM instruments</sqlCheck>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            INSERT INTO instruments (id, symbol, name, asset_class, currency, isin)
+            SELECT
+                gs AS id,
+                'GEN' || LPAD(gs::text, 3, '0') AS symbol,
+                'Generated Instrument ' || gs AS name,
+                (ARRAY['EQUITY','FIXED_INCOME','FX','COMMODITY','DERIVATIVE'])[((gs - 1) % 5) + 1] AS asset_class,
+                (ARRAY['USD','EUR','GBP','JPY','CHF'])[((gs - 1) % 5) + 1] AS currency,
+                NULLIF('GENISIN' || LPAD(gs::text, 5, '0'), 'GENISIN00000') AS isin
+            FROM generate_series(16, 50) gs;
+        ]]></sql>
+        <rollback>
+            <sql>DELETE FROM instruments WHERE id BETWEEN 16 AND 50;</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="008-seed-trades" author="trainer" context="dev,test">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <dbms type="postgresql"/>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM trades</sqlCheck>
+            </and>
+        </preConditions>
+        <sql splitStatements="false"><![CDATA[
+            INSERT INTO trades (
+                trade_ref,
+                instrument_id,
+                counterparty_id,
+                asset_class,
+                side,
+                quantity,
+                price,
+                trade_date,
+                status,
+                created_at,
+                modified_at
+            )
+            SELECT
+                'TRD-2026-' || LPAD(n::text, 6, '0') AS trade_ref,
+                1 + ((n - 1) % 50) AS instrument_id,
+                1 + ((n - 1) % 10) AS counterparty_id,
+                (ARRAY['EQUITY','FIXED_INCOME','FX','COMMODITY','DERIVATIVE'])[((n - 1) % 5) + 1] AS asset_class,
+                (ARRAY['BUY','SELL'])[((n - 1) % 2) + 1] AS side,
+                ROUND((10 + (n % 4000))::numeric, 4) AS quantity,
+                ROUND((50 + (n % 500))::numeric + ((n % 17)::numeric / 10), 4) AS price,
+                (DATE '2026-04-01' + (((n - 1) % 122) * INTERVAL '1 day'))::date AS trade_date,
+                (ARRAY['MATCHED','UNMATCHED','DISPUTED','PENDING'])[((n - 1) % 4) + 1] AS status,
+                (TIMESTAMP '2026-04-01 09:00:00' + ((n - 1) * INTERVAL '3 minute')) AS created_at,
+                (TIMESTAMP '2026-04-01 09:00:00' + ((n - 1) * INTERVAL '3 minute')) AS modified_at
+            FROM generate_series(1, 500) n;
+        ]]></sql>
+        <rollback>
+            <sql>DELETE FROM trades;</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="008-seed-users" author="trainer" context="dev,test">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM users</sqlCheck>
+        </preConditions>
         <!-- Real BCrypt hashes (cost=10) for admin123 / trader123 / viewer123 / recon123.
              Generated via: htpasswd -bnBC 10 "" <pw> | tr -d ':\n'
              Spring Security's BCryptPasswordEncoder accepts both $2a$ and $2y$ prefixes. -->
