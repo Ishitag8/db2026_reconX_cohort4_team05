@@ -1,0 +1,28 @@
+# IDE / Editor config
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Build artifacts
+target/
+**/target/
+dist/
+**/dist/
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+*.local
+
+# Logs
+*.log
+logs/
+
+# Operating system files
+Thumbs.db
