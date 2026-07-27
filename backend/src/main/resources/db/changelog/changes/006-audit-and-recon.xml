@@ -57,6 +57,15 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="008-fix-audit-log-text-to-varchar" author="trainer">
+        <modifyDataType tableName="audit_log" columnName="before_state" newDataType="VARCHAR(20000)"/>
+        <modifyDataType tableName="audit_log" columnName="after_state" newDataType="VARCHAR(20000)"/>
+            <rollback>
+                <modifyDataType tableName="audit_log" columnName="before_state" newDataType="TEXT"/>
+                <modifyDataType tableName="audit_log" columnName="after_state" newDataType="TEXT"/>
+            </rollback>
+    </changeSet>
+
     <changeSet id="006-create-recon-jobs" author="trainer">
         <createTable tableName="recon_jobs">
             <column name="id" type="BIGINT" autoIncrement="true">
