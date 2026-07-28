@@ -36,6 +36,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "Exchange email + password for a JWT")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
+<<<<<<< Updated upstream
         AppUser u = users.findByEmail(req.email())
                 .orElseThrow(() -> new InvalidTradeException("Invalid credentials"));
         if (!u.getEnabled() || !encoder.matches(req.password(), u.getPasswordHash())) {
@@ -43,5 +44,17 @@ public class AuthController {
         }
         String token = jwt.generate(u.getEmail(), u.getRole());
         return ResponseEntity.ok(new LoginResponse(token, "Bearer", jwt.expirationSeconds(), u.getRole()));
+=======
+        var user = users.findByEmail(req.email())
+                .filter(AppUser::getEnabled)
+                .orElseThrow(() -> new InvalidTradeException("Invalid credentials"));
+
+        if (!encoder.matches(req.password(), user.getPasswordHash())) {
+            throw new InvalidTradeException("Invalid credentials");
+        }
+
+        String token = jwt.generate(user.getEmail(), user.getRole());
+        return ResponseEntity.ok(new LoginResponse(token, "Bearer", jwt.expirationSeconds(), user.getRole()));
+>>>>>>> Stashed changes
     }
 }
