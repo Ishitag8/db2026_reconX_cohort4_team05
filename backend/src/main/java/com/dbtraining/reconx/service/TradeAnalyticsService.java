@@ -26,25 +26,6 @@ public class TradeAnalyticsService {
                 )));
     }
 
-    public Map<String, BigDecimal> vwapByInstrument(List<EquityTrade> equityTrades) {
-        Map<String, List<EquityTrade>> bySymbol = equityTrades.stream()
-                .collect(Collectors.groupingBy(EquityTrade::instrumentSymbol));
-
-        return bySymbol.entrySet().stream().collect(Collectors.toMap(
-                Map.Entry::getKey,
-                e -> {
-                    BigDecimal totalQty = e.getValue().stream()
-                            .map(EquityTrade::quantity)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    if (totalQty.signum() == 0) return BigDecimal.ZERO;
-                    BigDecimal weighted = e.getValue().stream()
-                            .map(t -> t.price().multiply(t.quantity()))
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    return weighted.divide(totalQty, 4, RoundingMode.HALF_UP);
-                }
-        ));
-    }
-
     private long counterpartyIdOf(TradeType t) {
         return switch (t) {
             case EquityTrade e                                 -> e.counterpartyId();

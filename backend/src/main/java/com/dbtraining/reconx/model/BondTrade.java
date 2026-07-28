@@ -36,6 +36,7 @@ public final class BondTrade implements TradeType {
     @Override public AssetClass assetClass() { return AssetClass.BOND; }
     @Override public Money notional()        { return new Money(faceValue, currency); }
 
+<<<<<<< HEAD
     public String isin()              { return isin; }
     public BigDecimal faceValue()     { return faceValue; }
     public BigDecimal couponRate()    { return couponRate; }
@@ -43,6 +44,76 @@ public final class BondTrade implements TradeType {
     public Currency currency()        { return currency; }
     public Side side()                { return side; }
     public long counterpartyId()      { return counterpartyId; }
+=======
+    @Override
+    public LocalDate tradeDate() {
+        return tradeDate;
+    }
+
+    @Override
+    public AssetClass assetClass() {
+        return AssetClass.BOND;
+    }
+
+    /** Notional = faceValue in the bond's currency. */
+    @Override
+    public Money notional() {
+        return new Money(faceValue, currency);
+    }
+
+    public String isin() {
+        return isin;
+    }
+
+    @Override public boolean equals(Object o) {
+        // TODO(TICKET-ADV028): pattern-match on BondTrade and compare tradeRef.
+        return (o instanceof BondTrade other) && tradeRef.equals(other.tradeRef);
+    }
+    @Override public int hashCode() {
+        // TODO(TICKET-ADV028): hash from tradeRef.
+        return tradeRef.hashCode();
+    public BigDecimal faceValue() {
+        return faceValue;
+    }
+
+    public BigDecimal couponRate() {
+        return couponRate;
+    }
+
+    public LocalDate maturityDate() {
+        return maturityDate;
+    }
+
+    public Currency currency() {
+        return currency;
+    }
+
+    public Side side() {
+        return side;
+    }
+
+    public long counterpartyId() {
+        return counterpartyId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof BondTrade other) && tradeRef.equals(other.tradeRef);
+    }
+
+    @Override
+    public int hashCode() {
+        return tradeRef.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        // NOTE: Deliberately omitted counterpartyId to preserve PII
+        return "BondTrade[ref=%s, isin=%s, face=%s %s, coupon=%s, maturity=%s, side=%s]"
+                .formatted(tradeRef, isin, faceValue.toPlainString(), currency.getCurrencyCode(),
+                        couponRate.toPlainString(), maturityDate, side);
+    }
+>>>>>>> origin/dev
 
     public static final class Builder {
         private TradeRef tradeRef;
@@ -74,6 +145,8 @@ public final class BondTrade implements TradeType {
             Objects.requireNonNull(tradeDate,    "tradeDate");
             if (maturityDate.isBefore(tradeDate))
                 throw new IllegalStateException("maturityDate cannot be before tradeDate");
+            if (isin.length() != 12)
+                throw new IllegalStateException("ISIN must be exactly 12 characters");
             return new BondTrade(this);
         }
     }

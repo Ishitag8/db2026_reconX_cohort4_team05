@@ -8,4 +8,7 @@ public class DuplicateTradeRefException extends ReconException {
     public DuplicateTradeRefException(String tradeRef, Throwable cause) {
         super(tradeRef, cause);
     }
+    public DuplicateTradeRefException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

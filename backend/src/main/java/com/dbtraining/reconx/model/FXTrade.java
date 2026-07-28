@@ -34,12 +34,79 @@ public final class FXTrade implements TradeType {
     @Override public AssetClass assetClass() { return AssetClass.FX; }
     @Override public Money notional()        { return new Money(notionalCcy1.multiply(fxRate), ccy2); }
 
+<<<<<<< HEAD
     public Currency ccy1()           { return ccy1; }
     public Currency ccy2()           { return ccy2; }
     public BigDecimal notionalCcy1() { return notionalCcy1; }
     public BigDecimal fxRate()       { return fxRate; }
     public Side side()               { return side; }
     public long counterpartyId()     { return counterpartyId; }
+=======
+    @Override
+    public LocalDate tradeDate() {
+        return tradeDate;
+    }
+
+    @Override
+    public AssetClass assetClass() {
+        return AssetClass.FX;
+    }
+
+    /** Notional in ccy2 = notionalCcy1 * fxRate. */
+    @Override
+    public Money notional() {
+        return new Money(notionalCcy1.multiply(fxRate), ccy2);
+    }
+
+    public Currency ccy1() {
+        return ccy1;
+    }
+
+    @Override public boolean equals(Object o) {
+        // TODO(TICKET-ADV028): pattern-match on FXTrade and compare tradeRef.
+        return (o instanceof FXTrade other) && tradeRef.equals(other.tradeRef);
+    }
+    @Override public int hashCode() {
+        // TODO(TICKET-ADV028): hash from tradeRef.
+        return tradeRef.hashCode();
+    public Currency ccy2() {
+        return ccy2;
+    }
+
+    public BigDecimal notionalCcy1() {
+        return notionalCcy1;
+    }
+
+    public BigDecimal fxRate() {
+        return fxRate;
+    }
+
+    public Side side() {
+        return side;
+    }
+
+    public long counterpartyId() {
+        return counterpartyId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof FXTrade other) && tradeRef.equals(other.tradeRef);
+    }
+
+    @Override
+    public int hashCode() {
+        return tradeRef.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        // NOTE: Deliberately omitted counterpartyId to preserve PII
+        return "FXTrade[ref=%s, %s/%s, notional=%s %s, rate=%s, side=%s]"
+                .formatted(tradeRef, ccy1.getCurrencyCode(), ccy2.getCurrencyCode(),
+                        notionalCcy1.toPlainString(), ccy1.getCurrencyCode(), fxRate.toPlainString(), side);
+    }
+>>>>>>> origin/dev
 
     public static final class Builder {
         private TradeRef tradeRef;

@@ -15,12 +15,6 @@ import java.util.Map;
 /**
  * ============================================================================
  * JwtTokenProvider (jjwt 0.12.x API)
- *
- * WHAT:    Generates + validates HS256-signed JWTs.
- * HOW:     Subject = email. Role goes into a custom "role" claim that
- *          {@link JwtAuthenticationFilter} turns into a GrantedAuthority.
- * WHY:     Self-contained (no DB hit per request) and stateless (no session).
- * OBSERVE: Decode any token at jwt.io with the configured secret.
  * ============================================================================
  */
 @Component
