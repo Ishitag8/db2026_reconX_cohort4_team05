@@ -2,6 +2,8 @@ package com.dbtraining.reconx.repository.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * TICKET-ADV132 / ADV137 — Append-only audit row written by AuditEventConsumer.
@@ -30,12 +32,12 @@ public class AuditLogEntry {
     @Column(length = 100)
     private String actor;
 
-    // No @Lob — Hibernate 6 + Postgres treats @Lob String as OID column,
-    // but Liquibase translates CLOB to TEXT. columnDefinition keeps both DBs
-    // happy (H2 accepts TEXT in Postgres mode, Postgres uses it natively).
+    // Use JDBC type code to align Hibernate validation with H2/Postgres TEXT storage.
+    @JdbcTypeCode(SqlTypes.CLOB)
     @Column(name = "before_state", columnDefinition = "TEXT")
     private String beforeState;
 
+    @JdbcTypeCode(SqlTypes.CLOB)
     @Column(name = "after_state", columnDefinition = "TEXT")
     private String afterState;
 
