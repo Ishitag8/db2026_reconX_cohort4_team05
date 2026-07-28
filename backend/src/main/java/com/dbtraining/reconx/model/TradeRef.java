@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 /**
  * ============================================================================
- * TICKET-ADV024 — Immutable value object: TradeRef (natural key for a trade)
+ * Immutable value object: TradeRef (natural key for a trade)
  *
  * WHAT:    Strongly-typed wrapper around the trade reference string. Format:
  *          AAA-YYYYMMDD-NNNN  (3 letters, 8-digit date, 4 digits).
