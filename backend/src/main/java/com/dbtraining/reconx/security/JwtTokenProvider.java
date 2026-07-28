@@ -1,6 +1,10 @@
 package com.dbtraining.reconx.security;
 
 import io.jsonwebtoken.Claims;
+<<<<<<< Updated upstream
+=======
+import io.jsonwebtoken.JwtException;
+>>>>>>> Stashed changes
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +14,10 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
+<<<<<<< Updated upstream
 import java.util.Map;
+=======
+>>>>>>> Stashed changes
 
 /**
  * ============================================================================
@@ -40,6 +47,7 @@ public class JwtTokenProvider {
 
     public String generate(String email, String role) {
         Instant now = Instant.now();
+<<<<<<< Updated upstream
         Instant exp = now.plusSeconds(expirationMinutes * 60);
         return Jwts.builder()
                 .subject(email)
@@ -47,11 +55,21 @@ public class JwtTokenProvider {
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(exp))
                 .claims(Map.of("role", role))
+=======
+        Instant expiresAt = now.plusSeconds(expirationMinutes * 60);
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuer(issuer)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(expiresAt))
+                .claim("role", role)
+>>>>>>> Stashed changes
                 .signWith(key)
                 .compact();
     }
 
     public Claims parse(String token) {
+<<<<<<< Updated upstream
         return Jwts.parser()
                 .verifyWith(key)
                 .requireIssuer(issuer)
@@ -61,4 +79,21 @@ public class JwtTokenProvider {
     }
 
     public long expirationSeconds() { return expirationMinutes * 60; }
+=======
+        try {
+            return Jwts.parser()
+                    .setSigningKey(key)
+                    .requireIssuer(issuer)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            throw e;
+        }
+    }
+
+    public long expirationSeconds() {
+        return expirationMinutes * 60;
+    }
+>>>>>>> Stashed changes
 }

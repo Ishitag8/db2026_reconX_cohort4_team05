@@ -2,17 +2,23 @@ package com.dbtraining.reconx.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+<<<<<<< Updated upstream
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+=======
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+>>>>>>> Stashed changes
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
+<<<<<<< Updated upstream
  * ============================================================================
  * Stateless security filter chain wiring JWT filter
  * RBAC: HTTP-method + path level role rules
@@ -21,12 +27,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * NOTE: `/api` context-path is set in application.yml, so paths here
  *       are relative to that (e.g. /v1/trades resolves to /api/v1/trades).
  * ============================================================================
+=======
+ * SecurityConfig — TICKET-ADV073 + TICKET-ADV074
+ *
+ * Spring Security filter chain for the backend, exposing a permit-all development
+ * configuration for now. PasswordEncoder is provided for future JWT auth login.
+>>>>>>> Stashed changes
  */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
+<<<<<<< Updated upstream
     public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
@@ -63,4 +76,18 @@ public class SecurityConfig {
     // TODO(TICKET-ADV073): register JwtAuthenticationFilter before
     //                     UsernamePasswordAuthenticationFilter.
     // TODO(TICKET-ADV074): add @EnableMethodSecurity and the RBAC matchers.
+=======
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+>>>>>>> Stashed changes
 }
