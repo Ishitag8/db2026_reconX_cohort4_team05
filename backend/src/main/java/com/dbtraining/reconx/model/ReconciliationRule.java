@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 /**
  * ============================================================================
@@ -48,6 +49,12 @@ public enum ReconciliationRule {
         //   3. qtyDiff = |internalQty - externalQty|.
         //   4. Return true iff priceDiffPct <= priceTolerancePct AND
         //      qtyDiff <= qtyToleranceAbs.
+        BigDecimal priceDiff= internalPrice.subtract(externalPrice).abs();
+        BigDecimal priceDiffPct= internalPrice.signum()==0? BigDecimal.ZERO: priceDiff.divide(internalPrice,6,RoundingMode.HALF_UP);
+        BigDecimal qtyDiff=internalQty.subtract(externalQty).abs();
+        boolean priceOK=priceDiffPct.compareTo(priceTolerancePct)<=0;
+        boolean qtyOK= qtyDiff.compareTo(qtyToleranceAbs)<=0;
+        return priceOK && qtyOK;
         throw new UnsupportedOperationException("TICKET-ADV026");
     }
 }
