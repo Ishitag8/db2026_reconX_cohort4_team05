@@ -6,4 +6,5 @@ public class InvalidTradeException extends ReconException {
     public InvalidTradeException(String message, Throwable cause){
         super(message,cause);
     }
+
 }

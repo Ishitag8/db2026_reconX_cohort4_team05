@@ -109,9 +109,10 @@ public final class FXTrade implements TradeType {
 
     @Override
     public String toString() {
+        // NOTE: Deliberately omitted counterpartyId to preserve PII
         return "FXTrade[ref=%s, %s/%s, notional=%s %s, rate=%s, side=%s]"
                 .formatted(tradeRef, ccy1.getCurrencyCode(), ccy2.getCurrencyCode(),
-                        notionalCcy1, ccy1.getCurrencyCode(), fxRate, side);
+                        notionalCcy1.toPlainString(), ccy1.getCurrencyCode(), fxRate.toPlainString(), side);
     }
 
     public static final class Builder {

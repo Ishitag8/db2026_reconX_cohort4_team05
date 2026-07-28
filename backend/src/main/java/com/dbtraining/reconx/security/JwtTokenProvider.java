@@ -1,10 +1,7 @@
 package com.dbtraining.reconx.security;
 
 import io.jsonwebtoken.Claims;
-<<<<<<< Updated upstream
-=======
 import io.jsonwebtoken.JwtException;
->>>>>>> Stashed changes
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,20 +11,11 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
-<<<<<<< Updated upstream
 import java.util.Map;
-=======
->>>>>>> Stashed changes
 
 /**
  * ============================================================================
  * JwtTokenProvider (jjwt 0.12.x API)
- *
- * WHAT:    Generates + validates HS256-signed JWTs.
- * HOW:     Subject = email. Role goes into a custom "role" claim that
- *          {@link JwtAuthenticationFilter} turns into a GrantedAuthority.
- * WHY:     Self-contained (no DB hit per request) and stateless (no session).
- * OBSERVE: Decode any token at jwt.io with the configured secret.
  * ============================================================================
  */
 @Component
@@ -47,7 +35,6 @@ public class JwtTokenProvider {
 
     public String generate(String email, String role) {
         Instant now = Instant.now();
-<<<<<<< Updated upstream
         Instant exp = now.plusSeconds(expirationMinutes * 60);
         return Jwts.builder()
                 .subject(email)
@@ -55,21 +42,11 @@ public class JwtTokenProvider {
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(exp))
                 .claims(Map.of("role", role))
-=======
-        Instant expiresAt = now.plusSeconds(expirationMinutes * 60);
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuer(issuer)
-                .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(expiresAt))
-                .claim("role", role)
->>>>>>> Stashed changes
                 .signWith(key)
                 .compact();
     }
 
     public Claims parse(String token) {
-<<<<<<< Updated upstream
         return Jwts.parser()
                 .verifyWith(key)
                 .requireIssuer(issuer)
@@ -78,8 +55,10 @@ public class JwtTokenProvider {
                 .getPayload();
     }
 
-    public long expirationSeconds() { return expirationMinutes * 60; }
-=======
+    public long expirationSeconds() {
+        return expirationMinutes * 60;
+    }
+
         try {
             return Jwts.parser()
                     .setSigningKey(key)
@@ -95,5 +74,5 @@ public class JwtTokenProvider {
     public long expirationSeconds() {
         return expirationMinutes * 60;
     }
->>>>>>> Stashed changes
+
 }

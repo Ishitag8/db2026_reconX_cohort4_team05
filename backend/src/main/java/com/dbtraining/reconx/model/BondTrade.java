@@ -111,9 +111,10 @@ public final class BondTrade implements TradeType {
 
     @Override
     public String toString() {
+        // NOTE: Deliberately omitted counterpartyId to preserve PII
         return "BondTrade[ref=%s, isin=%s, face=%s %s, coupon=%s, maturity=%s, side=%s]"
-                .formatted(tradeRef, isin, faceValue, currency.getCurrencyCode(),
-                        couponRate, maturityDate, side);
+                .formatted(tradeRef, isin, faceValue.toPlainString(), currency.getCurrencyCode(),
+                        couponRate.toPlainString(), maturityDate, side);
     }
 
     public static final class Builder {
@@ -181,6 +182,8 @@ public final class BondTrade implements TradeType {
             Objects.requireNonNull(tradeDate, "tradeDate");
             if (maturityDate.isBefore(tradeDate))
                 throw new IllegalStateException("maturityDate cannot be before tradeDate");
+            if (isin.length() != 12)
+                throw new IllegalStateException("ISIN must be exactly 12 characters");
             return new BondTrade(this);
         }
     }
