@@ -1,5 +1,3 @@
-# TICKET-ADV006 — ER model (8 entities)
-
 ```mermaid
 erDiagram
     COUNTERPARTIES ||--o{ TRADES : "executes"
@@ -24,7 +22,7 @@ erDiagram
         varchar asset_class
         char currency
         char isin UK
-        jsonb metadata "ADV009"
+        jsonb metadata "TICKET-ADV009"
     }
 
     TRADES {
@@ -36,9 +34,9 @@ erDiagram
         varchar side
         numeric quantity
         numeric price
-        date trade_date "PARTITION KEY (ADV007)"
+        date trade_date "PARTITION KEY (TICKET-ADV007)"
         varchar status
-        timestamp deleted_at "ADV067 soft delete"
+        timestamp deleted_at "TICKET-ADV067 soft delete"
         timestamp created_at
         timestamp modified_at
     }
