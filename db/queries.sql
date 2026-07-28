@@ -64,3 +64,33 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY mv_daily_recon_summary;
 SELECT id, symbol, metadata
 FROM instruments
 WHERE metadata @> '{"sector":"Banking"}'::jsonb;
+
+
+-- ============================================================================
+-- TICKET-ADV008 — CREATE MATERIALIZED VIEW mv_daily_recon_summary
+-- ============================================================================
+CREATE MATERIALIZED VIEW mv_daily_recon_summary AS
+SELECT
+    t.trade_date,
+    cp.region,
+    i.asset_class,
+    COUNT(t.id)                                       AS total_trades,
+    COUNT(t.id) FILTER (WHERE t.status = 'MATCHED')   AS matched_trades,
+    COUNT(rb.id) FILTER (WHERE rb.status = 'OPEN')    AS open_breaks,
+    ROUND(COALESCE(SUM(t.quantity * t.price), 0), 2)  AS gross_notional,
+    ROUND(
+        COALESCE(
+            (COUNT(t.id) FILTER (WHERE t.status = 'MATCHED')::NUMERIC / NULLIF(COUNT(t.id), 0)) * 100,
+            0
+        ),
+        2
+    )                                                 AS match_rate_pct
+FROM trades t
+JOIN counterparties cp ON cp.id = t.counterparty_id
+JOIN instruments i ON i.id = t.instrument_id
+LEFT JOIN recon_breaks rb ON rb.trade_id = t.id
+WHERE t.deleted_at IS NULL
+GROUP BY t.trade_date, cp.region, i.asset_class
+WITH NO DATA;
+
+CREATE UNIQUE INDEX uq_mv_daily_recon_summary ON mv_daily_recon_summary (trade_date, region, asset_class);
