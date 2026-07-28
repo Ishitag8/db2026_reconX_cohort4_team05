@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,7 +54,25 @@ public class JwtTokenProvider {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
     public long expirationSeconds() {
         return expirationMinutes * 60;
     }
+
+        try {
+            return Jwts.parser()
+                    .setSigningKey(key)
+                    .requireIssuer(issuer)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            throw e;
+        }
+    }
+
+    public long expirationSeconds() {
+        return expirationMinutes * 60;
+    }
+
 }

@@ -98,11 +98,12 @@ public final class EquityTrade implements TradeType {
     /** equals: two EquityTrades are equal iff their tradeRef is equal. */
     @Override
     public boolean equals(Object o) {
+        // TODO(TICKET-ADV028): pattern-match on EquityTrade and compare tradeRef.
         return (o instanceof EquityTrade other) && tradeRef.equals(other.tradeRef);
     }
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
+        // TODO(TICKET-ADV028): hash from tradeRef so it pairs with equals().
         return tradeRef.hashCode();
     }
 
