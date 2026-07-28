@@ -3,7 +3,7 @@
 # =============================================================================
 spring:
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:reconx}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:reconx}
     username: ${POSTGRES_USER:reconx_user}
     password: ${POSTGRES_PASSWORD:reconx_pass}
     driver-class-name: org.postgresql.Driver

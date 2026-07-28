@@ -108,8 +108,9 @@ public final class EquityTrade implements TradeType {
 
     @Override
     public String toString() {
+        // NOTE: Deliberately omitted counterpartyId to preserve PII
         return "EquityTrade[ref=%s, symbol=%s, qty=%s, price=%s %s, side=%s]"
-                .formatted(tradeRef, instrumentSymbol, quantity, price,
+                .formatted(tradeRef, instrumentSymbol, quantity.toPlainString(), price.toPlainString(),
                         currency.getCurrencyCode(), side);
     }
 

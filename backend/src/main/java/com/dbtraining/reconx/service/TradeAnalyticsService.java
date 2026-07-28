@@ -41,7 +41,7 @@ public class TradeAnalyticsService {
         throw new UnsupportedOperationException("TICKET-ADV035");
     }
 
-    /** TICKET-ADV036 — P&L per instrument symbol (sign by Side). */
+    /** TICKET-ADV036 - P and L per instrument symbol (sign by Side). */
     public Map<String, BigDecimal> pnlByInstrument(List<EquityTrade> equityTrades) {
         // TODO(TICKET-ADV036): groupingBy(EquityTrade::instrumentSymbol,
         //   mapping(this::pnl, reducing(BigDecimal.ZERO, BigDecimal::add))).
