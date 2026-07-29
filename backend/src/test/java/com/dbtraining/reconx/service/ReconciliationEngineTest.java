@@ -2,6 +2,7 @@ package com.dbtraining.reconx.service;
 
 import com.dbtraining.reconx.dto.ReconResult;
 import com.dbtraining.reconx.model.*;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ class ReconciliationEngineTest {
     private final ReconciliationEngine engine = new ReconciliationEngine();
 
     @Test
+    @DisplayName("Exact match on price and quantity returns MATCHED")
     void testReconcile_exactMatch_returnsMatched() {
         var in = List.<TradeType>of(equity("EQU-20260603-0001", "100.00", "10"));
         var out = List.<TradeType>of(equity("EQU-20260603-0001", "100.00", "10"));
