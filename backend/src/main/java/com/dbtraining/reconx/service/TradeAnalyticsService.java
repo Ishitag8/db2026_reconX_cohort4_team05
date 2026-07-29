@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 public class TradeAnalyticsService {
 
     public Map<Long, NotionalSummary> notionalByCounterparty(List<? extends TradeType> trades) {
+        if (trades == null || trades.isEmpty())
+            return Map.of();
         return trades.stream().collect(Collectors.groupingBy(
                 t -> counterpartyIdOf(t),
                 Collectors.collectingAndThen(
