@@ -2,6 +2,8 @@ package com.dbtraining.reconx.service;
 
 import com.dbtraining.reconx.dto.ReconResult;
 import com.dbtraining.reconx.model.*;
+//import com.dbtraining.reconx.collector.ReconSummaryCollector;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -67,6 +69,24 @@ class ReconciliationEngineTest {
         List<ReconResult> results = engine.reconcile(List.of(), List.of(), ReconciliationRule.EXACT);
         assertThat(results).isEmpty();
     }
+
+    @Test
+@DisplayName("All mismatched trades produce zero matched summary")
+void testReconcile_allMismatched_summaryShowsZeroMatched(){
+    List<TradeType> internals= List.of(equity("EQU-20260603-0001","100.00","1000"),
+                                    equity("EQU-20260603-0002","100.00","1000"),
+                                    equity("EQU-20260603-0003","100.00","1000")
+    );
+    List<TradeType> externals= List.of(equity("EQU-20260603-0001","200.00","1000"),
+                                    equity("EQU-20260603-0002","200.00","1000"),
+                                    equity("EQU-20260603-0003","200.00","1000")
+    );
+    List<ReconResult> results=engine.reconcile(internals,externals,ReconciliationRule.EXACT);
+    ReconSummary summary=results.stream().collect(new ReconSummaryCollector());
+    assertThat(summary.total()).isEqualTo(3);
+    assertThat(summary.matched()).isEqualTo(0);
+    assertThat(summary.broken()).isEqualTo(3);
+}
 
     private EquityTrade equity(String ref, String price, String qty) {
         return EquityTrade.builder()
