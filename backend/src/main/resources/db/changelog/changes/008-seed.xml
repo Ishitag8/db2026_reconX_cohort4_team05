@@ -10,9 +10,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
-    <changeSet id="008-seed-data-sql" author="student">
+    <changeSet id="008-seed-data-sql" author="student" context="dev,test">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM counterparties</sqlCheck>
         </preConditions>
         <sqlFile path="data/seed_data.sql" relativeToChangelogFile="true"/>
         <rollback>
@@ -25,7 +27,11 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="008-seed-users" author="trainer">
+    <changeSet id="008-seed-users" author="trainer" context="dev,test">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM users</sqlCheck>
+        </preConditions>
         <!-- Real BCrypt hashes (cost=10) for admin123 / trader123 / viewer123 / recon123. -->
         <insert tableName="users">
             <column name="email" value="admin@db.com"/>

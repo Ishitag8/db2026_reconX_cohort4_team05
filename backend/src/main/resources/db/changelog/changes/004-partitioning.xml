@@ -115,4 +115,16 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="004-trades-default-partition" author="student">
+        <preConditions onFail="MARK_RAN">
+            <dbms type="postgresql"/>
+        </preConditions>
+        <sql>
+            CREATE TABLE IF NOT EXISTS trades_default PARTITION OF trades DEFAULT;
+        </sql>
+        <rollback>
+            <sql>DROP TABLE IF EXISTS trades_default;</sql>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
