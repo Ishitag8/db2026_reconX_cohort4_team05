@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * POST /api/auth/login
+ * TICKET-ADV072 — POST /api/auth/login
  *
  * Verifies BCrypt password, returns a JWT carrying the user's role.
  */

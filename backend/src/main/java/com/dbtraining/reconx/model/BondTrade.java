@@ -18,31 +18,86 @@ public final class BondTrade implements TradeType {
     private final long counterpartyId;
 
     private BondTrade(Builder b) {
-        this.tradeRef       = b.tradeRef;
-        this.isin           = b.isin;
-        this.faceValue      = b.faceValue;
-        this.couponRate     = b.couponRate;
-        this.maturityDate   = b.maturityDate;
-        this.currency       = b.currency;
-        this.side           = b.side;
-        this.tradeDate      = b.tradeDate;
+        this.tradeRef = b.tradeRef;
+        this.isin = b.isin;
+        this.faceValue = b.faceValue;
+        this.couponRate = b.couponRate;
+        this.maturityDate = b.maturityDate;
+        this.currency = b.currency;
+        this.side = b.side;
+        this.tradeDate = b.tradeDate;
         this.counterpartyId = b.counterpartyId;
     }
 
-    public static Builder builder() { return new Builder(); }
+    public static Builder builder() {
+        return new Builder();
+    }
 
-    @Override public TradeRef tradeRef()     { return tradeRef; }
-    @Override public LocalDate tradeDate()   { return tradeDate; }
-    @Override public AssetClass assetClass() { return AssetClass.BOND; }
-    @Override public Money notional()        { return new Money(faceValue, currency); }
+    @Override
+    public TradeRef tradeRef() {
+        return tradeRef;
+    }
 
-    public String isin()              { return isin; }
-    public BigDecimal faceValue()     { return faceValue; }
-    public BigDecimal couponRate()    { return couponRate; }
-    public LocalDate maturityDate()   { return maturityDate; }
-    public Currency currency()        { return currency; }
-    public Side side()                { return side; }
-    public long counterpartyId()      { return counterpartyId; }
+    @Override
+    public LocalDate tradeDate() {
+        return tradeDate;
+    }
+
+    @Override
+    public AssetClass assetClass() {
+        return AssetClass.BOND;
+    }
+
+    @Override
+    public Money notional() {
+        return new Money(faceValue, currency);
+    }
+
+    public String isin() {
+        return isin;
+    }
+
+    public BigDecimal faceValue() {
+        return faceValue;
+    }
+
+    public BigDecimal couponRate() {
+        return couponRate;
+    }
+
+    public LocalDate maturityDate() {
+        return maturityDate;
+    }
+
+    public Currency currency() {
+        return currency;
+    }
+
+    public Side side() {
+        return side;
+    }
+
+    public long counterpartyId() {
+        return counterpartyId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof BondTrade other) && tradeRef.equals(other.tradeRef);
+    }
+
+    @Override
+    public int hashCode() {
+        return tradeRef.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        // NOTE: Deliberately omitted counterpartyId to preserve PII
+        return "BondTrade[ref=%s, isin=%s, face=%s %s, coupon=%s, maturity=%s, side=%s]"
+                .formatted(tradeRef, isin, faceValue.toPlainString(), currency.getCurrencyCode(),
+                        couponRate.toPlainString(), maturityDate, side);
+    }
 
     public static final class Builder {
         private TradeRef tradeRef;
@@ -53,25 +108,60 @@ public final class BondTrade implements TradeType {
         private Side side;
         private long counterpartyId;
 
-        public Builder tradeRef(TradeRef v)        { this.tradeRef = v; return this; }
-        public Builder isin(String v)              { this.isin = v; return this; }
-        public Builder faceValue(BigDecimal v)     { this.faceValue = v; return this; }
-        public Builder couponRate(BigDecimal v)    { this.couponRate = v; return this; }
-        public Builder maturityDate(LocalDate v)   { this.maturityDate = v; return this; }
-        public Builder currency(String code)       { this.currency = Currency.getInstance(code); return this; }
-        public Builder side(Side v)                { this.side = v; return this; }
-        public Builder tradeDate(LocalDate v)      { this.tradeDate = v; return this; }
-        public Builder counterpartyId(long v)      { this.counterpartyId = v; return this; }
+        public Builder tradeRef(TradeRef v) {
+            this.tradeRef = v;
+            return this;
+        }
+
+        public Builder isin(String v) {
+            this.isin = v;
+            return this;
+        }
+
+        public Builder faceValue(BigDecimal v) {
+            this.faceValue = v;
+            return this;
+        }
+
+        public Builder couponRate(BigDecimal v) {
+            this.couponRate = v;
+            return this;
+        }
+
+        public Builder maturityDate(LocalDate v) {
+            this.maturityDate = v;
+            return this;
+        }
+
+        public Builder currency(String code) {
+            this.currency = Currency.getInstance(code);
+            return this;
+        }
+
+        public Builder side(Side v) {
+            this.side = v;
+            return this;
+        }
+
+        public Builder tradeDate(LocalDate v) {
+            this.tradeDate = v;
+            return this;
+        }
+
+        public Builder counterpartyId(long v) {
+            this.counterpartyId = v;
+            return this;
+        }
 
         public BondTrade build() {
-            Objects.requireNonNull(tradeRef,     "tradeRef");
-            Objects.requireNonNull(isin,         "isin");
-            Objects.requireNonNull(faceValue,    "faceValue");
-            Objects.requireNonNull(couponRate,   "couponRate");
+            Objects.requireNonNull(tradeRef, "tradeRef");
+            Objects.requireNonNull(isin, "isin");
+            Objects.requireNonNull(faceValue, "faceValue");
+            Objects.requireNonNull(couponRate, "couponRate");
             Objects.requireNonNull(maturityDate, "maturityDate");
-            Objects.requireNonNull(currency,     "currency");
-            Objects.requireNonNull(side,         "side");
-            Objects.requireNonNull(tradeDate,    "tradeDate");
+            Objects.requireNonNull(currency, "currency");
+            Objects.requireNonNull(side, "side");
+            Objects.requireNonNull(tradeDate, "tradeDate");
             if (maturityDate.isBefore(tradeDate))
                 throw new IllegalStateException("maturityDate cannot be before tradeDate");
             if (isin.length() != 12)

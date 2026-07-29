@@ -32,13 +32,10 @@ public class AuditLogEntry {
     @Column(length = 100)
     private String actor;
 
-    // Use JDBC type code to align Hibernate validation with H2/Postgres TEXT storage.
-    @JdbcTypeCode(SqlTypes.CLOB)
-    @Column(name = "before_state", columnDefinition = "TEXT")
+    @Column(name = "before_state", length = 20000)
     private String beforeState;
 
-    @JdbcTypeCode(SqlTypes.CLOB)
-    @Column(name = "after_state", columnDefinition = "TEXT")
+    @Column(name = "after_state", length = 20000)
     private String afterState;
 
     public AuditLogEntry() {
