@@ -47,12 +47,16 @@ class ReconciliationEngineTest {
     }
 
     @Test
+    @DisplayName("Missing counterparty trade returns BREAK")
     void testReconcile_missingCounterpartyTrade_returnsBreak() {
+        // GIVEN
         var in = List.<TradeType>of(equity("EQU-20260603-0003", "100.00", "10"));
         var out = List.<TradeType>of();
 
+        //WHEN
         List<ReconResult> results = engine.reconcile(in, out, ReconciliationRule.EXACT);
 
+        //THEN
         assertThat(results).hasSize(1);
         assertThat(results.get(0).status()).isEqualTo(ReconResult.Status.BREAK);
         assertThat(results.get(0).discrepancyType()).isEqualTo("MISSING_EXTERNAL");
