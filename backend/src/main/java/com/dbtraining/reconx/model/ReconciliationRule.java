@@ -1,11 +1,10 @@
 package com.dbtraining.reconx.model;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 /**
  * ============================================================================
- * TICKET-ADV026 — ReconciliationRule enum with configurable thresholds
+ * ReconciliationRule enum with configurable thresholds
  *
  * WHAT:    Each enum value carries its own price tolerance (%) and quantity
  *          tolerance (absolute units). {@link #matches} returns true if the
