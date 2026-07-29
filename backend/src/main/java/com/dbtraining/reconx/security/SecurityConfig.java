@@ -16,10 +16,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * ============================================================================
  * Stateless security filter chain wiring JWT filter
  * RBAC: HTTP-method + path level role rules
- *                Roles: ADMIN, TRADER, VIEWER, RECON_ANALYST
+ * Roles: ADMIN, TRADER, VIEWER, RECON_ANALYST
  *
  * NOTE: `/api` context-path is set in application.yml, so paths here
- *       are relative to that (e.g. /v1/trades resolves to /api/v1/trades).
+ * are relative to that (e.g. /v1/trades resolves to /api/v1/trades).
  * ============================================================================
  */
 @Configuration
@@ -27,35 +27,41 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Bean
-    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                        "/auth/login",
-                        "/actuator/health/**",
-                        "/actuator/info",
-                        "/actuator/prometheus",
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/h2/**"
-                ).permitAll()
-                .requestMatchers(HttpMethod.GET,    "/v1/trades/**").hasAnyRole("VIEWER","TRADER","RECON_ANALYST","ADMIN")
-                .requestMatchers(HttpMethod.POST,   "/v1/trades").hasAnyRole("TRADER","ADMIN")
-                .requestMatchers(HttpMethod.PUT,    "/v1/trades/**").hasAnyRole("TRADER","ADMIN")
-                .requestMatchers(HttpMethod.PATCH,  "/v1/trades/**").hasAnyRole("TRADER","ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/v1/trades/**").hasRole("ADMIN")
-                .requestMatchers("/v1/recon/**").hasAnyRole("RECON_ANALYST","ADMIN")
-                .requestMatchers("/v1/audit/**").hasAnyRole("RECON_ANALYST","ADMIN")
-                .anyRequest().authenticated()
-            )
-            .headers(h -> h.frameOptions(f -> f.disable()))   // for /h2 dev console
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/auth/login",
+                                "/actuator/health/**",
+                                "/actuator/info",
+                                "/actuator/prometheus",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/h2/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/trades/**")
+                        .hasAnyRole("VIEWER", "TRADER", "RECON_ANALYST", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/v1/trades").hasAnyRole("TRADER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/v1/trades/**").hasAnyRole("TRADER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/v1/trades/**").hasAnyRole("TRADER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/v1/trades/**").hasRole("ADMIN")
+                        .requestMatchers("/v1/recon/**").hasAnyRole("RECON_ANALYST", "ADMIN")
+                        .requestMatchers("/v1/audit/**").hasAnyRole("RECON_ANALYST", "ADMIN")
+                        .anyRequest().authenticated())
+                .headers(h -> h.frameOptions(f -> f.disable())) // for /h2 dev console
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
+    // TODO(TICKET-ADV073): register JwtAuthenticationFilter before
+    // UsernamePasswordAuthenticationFilter.
+    // TODO(TICKET-ADV074): add @EnableMethodSecurity and the RBAC matchers.
 }

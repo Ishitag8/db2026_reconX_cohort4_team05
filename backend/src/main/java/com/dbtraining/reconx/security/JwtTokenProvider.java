@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -72,6 +73,6 @@ public class JwtTokenProvider {
     }
 
     public long expirationSeconds() {
-        throw new UnsupportedOperationException("TICKET-ADV072");
+        return expirationMinutes * 60;
     }
 }

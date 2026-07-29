@@ -14,33 +14,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * ============================================================================
- * TICKET-ADV034 — Trade analytics with Collectors (groupingBy + summarizing)
- * TICKET-ADV035 — VWAP calculator using Streams + custom collector
- * TICKET-ADV036 — P&L per instrument: stream reduction
- * ============================================================================
- */
 @Service
 public class TradeAnalyticsService {
 
-    /** TICKET-ADV034 — count + sum of notional per counterparty. */
     public Map<Long, NotionalSummary> notionalByCounterparty(List<? extends TradeType> trades) {
-        if (trades == null || trades.isEmpty())
-            return Map.of();
         return trades.stream().collect(Collectors.groupingBy(
-                this::counterpartyIdOf,
-                Collectors.collectingAndThen(Collectors.toList(), list -> new NotionalSummary(
-                        list.size(),
-                        list.stream()
-                                .map(t -> t.notional().amount())
-                                .reduce(BigDecimal.ZERO, BigDecimal::add)))));
+                t -> counterpartyIdOf(t),
+                Collectors.collectingAndThen(
+                        Collectors.toList(),
+                        list -> new NotionalSummary(
+                                list.size(),
+                                list.stream()
+                                        .map(t -> t.notional().amount())
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add)))));
     }
 
-    /**
-     * TICKET-ADV035 — VWAP = SUM(price * qty) / SUM(qty). Equity-only — only
-     * EquityTrade has a meaningful price-volume pair.
-     */
     public Map<String, BigDecimal> vwapByInstrument(List<EquityTrade> equityTrades) {
         if (equityTrades == null || equityTrades.isEmpty())
             return Map.of();
@@ -62,7 +50,6 @@ public class TradeAnalyticsService {
         ));
     }
 
-    /** TICKET-ADV036 — P&L per instrument symbol (sign by Side). */
     public Map<String, BigDecimal> pnlByInstrument(List<EquityTrade> equityTrades) {
         if (equityTrades == null || equityTrades.isEmpty())
             return Map.of();
@@ -80,9 +67,9 @@ public class TradeAnalyticsService {
     private long counterpartyIdOf(TradeType t) {
         return switch (t) {
             case EquityTrade e -> e.counterpartyId();
-            case FXTrade fx -> fx.counterpartyId();
-            case BondTrade b -> b.counterpartyId();
-            case DerivativeTrade d -> d.counterpartyId();
+            case com.dbtraining.reconx.model.FXTrade fx -> fx.counterpartyId();
+            case com.dbtraining.reconx.model.BondTrade b -> b.counterpartyId();
+            case com.dbtraining.reconx.model.DerivativeTrade d -> d.counterpartyId();
         };
     }
 
