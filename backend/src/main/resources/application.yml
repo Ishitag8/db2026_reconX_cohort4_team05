@@ -11,24 +11,24 @@
 #          Liquibase runs, sample users are seeded.
 # =============================================================================
 spring:
-  application:
-    name: reconx
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  application:
+    name: reconx-api
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+        format_sql: true
 
   # ADV012 — Liquibase classpath wiring (the classic starter bug is missing the
   # `classpath:` prefix here, which causes a silent skip on JAR builds).
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.xml
-    enabled: true
-
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate.format_sql: true
-      hibernate.jdbc.time_zone: UTC
+  sql:
+    init:
+      mode: never 
 
   # ADV081-ADV082 — Caffeine cache config; per-cache spec overrides the global one.
   cache:

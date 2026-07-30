@@ -21,12 +21,28 @@
     <changeSet id="003-jsonb-on-instruments" author="trainer">
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
-        </preConditions>
+        </preConditions> 
         <sql>ALTER TABLE instruments ADD COLUMN metadata JSONB DEFAULT '{}'::JSONB NOT NULL;</sql>
         <sql>CREATE INDEX idx_instruments_metadata_gin ON instruments USING GIN (metadata jsonb_path_ops);</sql>
         <rollback>
             <sql>DROP INDEX IF EXISTS idx_instruments_metadata_gin;</sql>
             <sql>ALTER TABLE instruments DROP COLUMN metadata;</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="003-jsonb-on-instruments-fallback" author="trainer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <dbms type="postgresql"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="instruments">
+            <column name="metadata" type="jsonb" defaultValue="{}">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="instruments" columnName="metadata"/>
         </rollback>
     </changeSet>
 
