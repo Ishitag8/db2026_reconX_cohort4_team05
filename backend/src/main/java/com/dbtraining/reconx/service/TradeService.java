@@ -24,6 +24,21 @@ import java.util.UUID;
 
 import static com.dbtraining.reconx.repository.TradeSpecifications.*;
 
+
+
+/**
+ * ============================================================================
+ * TICKET-ADV064 — TradeService.create (POST endpoint backing)
+ * TICKET-ADV065 — update
+ * TICKET-ADV066 — updateStatus (PATCH)
+ * TICKET-ADV067 — softDelete
+ * TICKET-ADV083 — increments trade_created_total Counter on create
+ * TICKET-ADV129 — publishes TradeEvent on every state change
+ * TICKET-ADV055/ADV056 — list() uses Specifications + filter query
+ * ============================================================================
+ */
+
+
 @Service
 @Transactional
 public class TradeService {
