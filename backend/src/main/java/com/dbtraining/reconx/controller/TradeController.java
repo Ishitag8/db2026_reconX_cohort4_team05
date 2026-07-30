@@ -60,7 +60,7 @@ public class TradeController {
         //   "no trades match" while the JPA + Specifications work is still pending.
         Page<Trade> page= service.list(from, to, status, counterpartyId, pageable);
         return PagedResponse.from(page, mapper::toResponse);
-        return new PagedResponse<>(List.of(), 0, 20, 0, 0);
+        //return new PagedResponse<>(List.of(), 0, 20, 0, 0);
     }
 
     @PostMapping
