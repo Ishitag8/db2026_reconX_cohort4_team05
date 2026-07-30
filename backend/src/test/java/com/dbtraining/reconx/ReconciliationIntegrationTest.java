@@ -29,6 +29,8 @@ static void configureProperties(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.password", postgres::getPassword);
     registry.add("spring.datasource.driver-class-name",
             () -> "org.postgresql.Driver");
+    registry.add("spring.jpa.database-platform",
+            () -> "org.hibernate.dialect.PostgreSQLDialect");
 }
 
     @Test
