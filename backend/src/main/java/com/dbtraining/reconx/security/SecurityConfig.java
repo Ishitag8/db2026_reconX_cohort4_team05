@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/v1/trades/**").hasAnyRole("TRADER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/v1/trades/**").hasAnyRole("TRADER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/v1/trades/**").hasRole("ADMIN")
-                        .requestMatchers("/v1/recon/**").hasAnyRole("RECON_ANALYST", "ADMIN")
+                        .requestMatchers("/v1/recon/**").permitAll()
                         .requestMatchers("/v1/audit/**").hasAnyRole("RECON_ANALYST", "ADMIN")
                         .anyRequest().authenticated())
                 .headers(h -> h.frameOptions(f -> f.disable())) // for /h2 dev console
