@@ -71,22 +71,22 @@ class ReconciliationEngineTest {
     }
 
     @Test
-    @DisplayName("All mismatched trades produce zero matched summary")
-    void testReconcile_allMismatched_summaryShowsZeroMatched(){
-        List<TradeType> internals= List.of(equity("EQU-MM-1","100.00","1000"),
-                                        equity("EQU-MM-2","100.00","1000"),
-                                        equity("EQU-MM-3","100.00","1000")
-        );
-        List<TradeType> externals= List.of(equity("EQU-MM-1","200.00","1000"),
-                                        equity("EQU-MM-2","200.00","1000"),
-                                        equity("EQU-MM-3","200.00","1000")
-        );
-        List<ReconResult> results=engine.reconcile(internals,externals,ReconciliationRule.EXACT);
-        ReconSummary summary=results.stream().collect(new ReconSummaryCollector());
-        assertThat(summary.total()).isEqualTo(3);
-        assertThat(summary.matched()).isEqualTo(0);
-        assertThat(summary.broken()).isEqualTo(3);
-    }
+@DisplayName("All mismatched trades produce zero matched summary")
+void testReconcile_allMismatched_summaryShowsZeroMatched(){
+    List<TradeType> internals= List.of(equity("EQU-20260603-0001","100.00","1000"),
+                                    equity("EQU-20260603-0002","100.00","1000"),
+                                    equity("EQU-20260603-0003","100.00","1000")
+    );
+    List<TradeType> externals= List.of(equity("EQU-20260603-0001","200.00","1000"),
+                                    equity("EQU-20260603-0002","200.00","1000"),
+                                    equity("EQU-20260603-0003","200.00","1000")
+    );
+    List<ReconResult> results=engine.reconcile(internals,externals,ReconciliationRule.EXACT);
+    ReconSummary summary=results.stream().collect(new ReconSummaryCollector());
+    assertThat(summary.total()).isEqualTo(3);
+    assertThat(summary.matched()).isEqualTo(0);
+    assertThat(summary.broken()).isEqualTo(3);
+}
 
     private EquityTrade equity(String ref, String price, String qty) {
         return EquityTrade.builder()

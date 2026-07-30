@@ -194,7 +194,8 @@
         </dependency>
     </dependencies>
 
-    <build>
+    
+<build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -213,11 +214,21 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
+            <!-- ADDED for TICKET-60: force test JVM timezone -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -Duser.timezone=Asia/Kolkata</argLine>
+                </configuration>
+            </plugin>
+
             <!-- ADV046 / ADV156 — JaCoCo coverage gate (>=85%) -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
+                <version>0.8.13</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -253,7 +264,7 @@
                     </execution>
                 </executions>
             </plugin>
-    
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -262,7 +273,7 @@
                     <subpackages>com.dbtraining.reconx.model:com.dbtraining.reconx.exception</subpackages>
                     <additionalOptions>-Xdoclint:all -Xdoclint:-missing</additionalOptions>
                 </configuration>
-            </plugin> 
+            </plugin>
         </plugins>
     </build>
 </project>
