@@ -58,6 +58,8 @@ public class TradeController {
         //   and wrap the resulting Page<Trade> via PagedResponse.from(page, mapper::toResponse).
         //   For Day 1 return an empty PagedResponse so the React grid renders
         //   "no trades match" while the JPA + Specifications work is still pending.
+        Page<Trade> page= service.list(from, to, status, counterpartyId, pageable);
+        return PagedResponse.from(page, mapper::toResponse);
         return new PagedResponse<>(List.of(), 0, 20, 0, 0);
     }
 
