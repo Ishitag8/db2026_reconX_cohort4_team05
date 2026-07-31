@@ -56,7 +56,6 @@ class TradeLifecycleIT {
                 "http://localhost:" + port + "/api/auth/login", req, JsonNode.class);
         Assertions.assertEquals(HttpStatus.OK, resp.getStatusCode());
         token = resp.getBody().get("token").asText();
-        System.out.println("TOKEN = " + token);
         Assertions.assertNotNull(token);
     }
 
