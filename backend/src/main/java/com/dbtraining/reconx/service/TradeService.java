@@ -217,32 +217,18 @@ public class TradeService {
         ));
     }
 
-@Transactional(readOnly = true)
-public Trade findById(Long id) {
+    @Transactional(readOnly = true)
+    public Page<Trade> list(LocalDate from,
+                            LocalDate to,
+                            String status,
+                            Long counterpartyId,
+                            Pageable pageable) {
 
-    Trade trade = tradeRepo.findById(id)
-            .orElseThrow(() ->
-                    new TradeNotFoundException("id " + id));
+        Specification<Trade> spec = Specification
+                .where(tradeDateBetween(from, to))
+                .and(hasStatus(status))
+                .and(hasCounterparty(counterpartyId));
 
-    initLazyRelations(trade);
-
-    return trade;
-}
-
-@Transactional(readOnly = true)
-public Page<Trade> list(LocalDate from,
-                        LocalDate to,
-                        String status,
-                        Long counterpartyId,
-                        Pageable pageable) {
-
-    Specification<Trade> spec = Specification
-            .where(tradeDateBetween(from, to))
-            .and(hasStatus(status))
-            .and(hasCounterparty(counterpartyId));
-
-    return tradeRepo.findAll(spec, pageable);
-}
+        return tradeRepo.findAll(spec, pageable);
     }
-
-    
+}
