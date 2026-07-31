@@ -62,12 +62,15 @@ public class TradeController {
     @PostMapping
     @Operation(summary = "Create a trade")
     public ResponseEntity<TradeResponse> create(@Valid @RequestBody TradeRequest req,
-            @AuthenticationPrincipal Object principal) {
-        String actor = String.valueOf(principal);
+
+                                                @AuthenticationPrincipal Object principal) {
+        String actor = principal != null ? principal.toString() : "unknown";
         Trade saved = service.create(req, actor);
-        return ResponseEntity
-                .created(URI.create("/api/v1/trades/" + saved.getId()))
-                .body(mapper.toResponse(saved));
+        TradeResponse body = mapper.toResponse(saved);
+        URI location = URI.create("/api/v1/trades/" + saved.getId());
+        return ResponseEntity.created(location).body(body);
+
+
     }
 
     @PutMapping("/{id}")
