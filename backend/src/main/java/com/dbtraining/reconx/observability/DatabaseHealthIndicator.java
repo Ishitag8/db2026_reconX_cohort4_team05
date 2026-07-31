@@ -54,27 +54,21 @@ public class DatabaseHealthIndicator extends AbstractHealthIndicator {
     @Override
     protected void doHealthCheck(Health.Builder builder) throws Exception {
         long start = System.nanoTime();
-long start = System.nanoTime();
 
-try (Connection connection = ds.getConnection();
-     Statement statement = connection.createStatement()) {
+        try (Connection connection = ds.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.setQueryTimeout((int) TIMEOUT.toSeconds());
+            try (ResultSet resultSet = statement.executeQuery(QUERY)) {
+                resultSet.next();
+            }
 
-    statement.setQueryTimeout((int) TIMEOUT.toSeconds());
-
-    try (ResultSet resultSet = statement.executeQuery(QUERY)) {
-        resultSet.next();
-    }
-
-    long elapsedMs = (System.nanoTime() - start) / 1_000_000;
-
-    builder.up()
-            .withDetail("query", QUERY)
-            .withDetail("elapsedMs", elapsedMs);
-
-} catch (SQLException e) {
-    builder.down(e)
-            .withDetail("query", QUERY);
-}
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+            builder.up()
+                    .withDetail("query", QUERY)
+                    .withDetail("elapsedMs", elapsedMs);
+        } catch (SQLException e) {
+            builder.down(e).withDetail("query", QUERY);
         }
     }
 
+}

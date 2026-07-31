@@ -73,6 +73,7 @@ class ReconciliationEngineTest {
     @Test
     @DisplayName("All mismatched trades produce zero matched summary")
     void testReconcile_allMismatched_summaryShowsZeroMatched(){
+
 List<TradeType> internals = List.of(
         equity("EQU-20260603-0001", "100.00", "1000"),
         equity("EQU-20260603-0002", "100.00", "1000"),
