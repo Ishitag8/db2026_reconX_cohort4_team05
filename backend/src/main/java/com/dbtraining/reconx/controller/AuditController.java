@@ -15,7 +15,7 @@ import java.util.List;
  * TICKET-ADV138 — GET /api/v1/audit/trades/{tradeRef}/events
  */
 @RestController
-@RequestMapping("/v1/audit")
+@RequestMapping("/api/v1/audit")
 @Tag(name = "audit")
 @SecurityRequirement(name = "bearerAuth")
 public class AuditController {
@@ -30,7 +30,8 @@ public class AuditController {
         // TODO(TICKET-ADV071): return auditRepo.findByTradeRefOrderByEventTimestampAsc(tradeRef).
         //   Day-0 returns an empty list so the React audit-trail panel renders
         //   "no history yet" instead of erroring.
-        return Collections.emptyList();
+        return auditRepo.findByTradeRefOrderByEventTimestampAsc(tradeRef);
+        //return Collections.emptyList();
     }
 
     @GetMapping("/trades/{tradeRef}/events")
