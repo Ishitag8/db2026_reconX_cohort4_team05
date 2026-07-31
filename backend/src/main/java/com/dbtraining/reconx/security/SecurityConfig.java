@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
 /**
  * ============================================================================
  * Stateless security filter chain wiring JWT filter
@@ -36,6 +37,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(e -> e
+                    .authenticationEntryPoint(
+                            new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                                    org.springframework.http.HttpStatus.UNAUTHORIZED))
+                    .accessDeniedHandler(
+                            new org.springframework.security.web.access.AccessDeniedHandlerImpl()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/login",
