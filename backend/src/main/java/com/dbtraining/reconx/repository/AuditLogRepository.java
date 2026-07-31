@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+@Repository
 public interface AuditLogRepository extends JpaRepository<AuditLogEntry, Long> {
     List<AuditLogEntry> findByTradeRefOrderByEventTimestampAsc(String tradeRef);
 }
