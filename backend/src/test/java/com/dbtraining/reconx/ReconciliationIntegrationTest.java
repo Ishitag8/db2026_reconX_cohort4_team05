@@ -19,10 +19,8 @@ class ReconciliationIntegrationTest {
                     .withUsername("test")
                     .withPassword("test");
 
-    @DynamicPropertySource
+@DynamicPropertySource
 static void configureProperties(DynamicPropertyRegistry registry) {
-
-    
 
     registry.add("spring.datasource.url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
@@ -30,7 +28,6 @@ static void configureProperties(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.driver-class-name",
             () -> "org.postgresql.Driver");
 }
-
     @Test
     void contextLoads() {
     }
