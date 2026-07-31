@@ -229,6 +229,8 @@ public class TradeService {
                 .and(hasStatus(status))
                 .and(hasCounterparty(counterpartyId));
 
-        return tradeRepo.findAll(spec, pageable);
+        Page<Trade> page = tradeRepo.findAll(spec, pageable);
+        page.forEach(TradeService::initLazyRelations);
+        return page;
     }
 }

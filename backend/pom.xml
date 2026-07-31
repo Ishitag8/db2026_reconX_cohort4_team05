@@ -40,7 +40,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mapstruct.version>1.6.2</mapstruct.version>
         <jjwt.version>0.12.6</jjwt.version>
-        <testcontainers.version>1.20.3</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <hypersistence.version>3.9.0</hypersistence.version>
     </properties>
 

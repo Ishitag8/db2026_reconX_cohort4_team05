@@ -2,6 +2,8 @@
 -- TICKET-ADV017 — Seed data: 10 counterparties, 50 instruments, 500 trades
 -- ============================================================================
 
+TRUNCATE TABLE recon_breaks, trades, instruments, counterparties CASCADE;
+
 -- 10 counterparties — explicit, named, spread across all 4 regions
 INSERT INTO counterparties (name, lei_code, region) VALUES
   ('Apex Brokers Inc',           '5493001ABCDE12345001', 'NAMR'),
