@@ -57,8 +57,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
-        // TODO(TICKET-ADV073): parse the Authorization header, populate the
-        //                     SecurityContext, then call chain.doFilter.
+        String header = req.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            try {
+                io.jsonwebtoken.Claims claims = provider.parse(token);
+                String email = claims.getSubject();
+                String role = (String) claims.get("role");
+                var authorities = java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+                var auth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(email, null, authorities);
+                auth.setDetails(new org.springframework.security.web.authentication.WebAuthenticationDetailsSource().buildDetails(req));
+                org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+            } catch (io.jsonwebtoken.JwtException ex) {
+                org.springframework.security.core.context.SecurityContextHolder.clearContext();
+            }
+        }
         chain.doFilter(req, res);
     }
 }
