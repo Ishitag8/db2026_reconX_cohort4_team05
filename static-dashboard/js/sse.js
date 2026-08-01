@@ -53,5 +53,22 @@
     feed.prepend(el);
   }
 
+  // Prepend static demo events on load
   demoEvents.forEach((e, i) => setTimeout(() => prepend(e), 500 * i));
+
+  // Connect to live SSE trade stream (TICKET-ADV106)
+  const sse = new EventSource('http://localhost:8081/api/v1/trades/stream');
+  sse.onmessage = (event) => {
+    try {
+      const trade = JSON.parse(event.data);
+      prepend(trade);
+    } catch (e) {
+      console.error('Failed to parse live trade event:', e);
+    }
+  };
+
+  // Close EventSource on window unload
+  window.addEventListener('beforeunload', () => {
+    sse.close();
+  });
 })();

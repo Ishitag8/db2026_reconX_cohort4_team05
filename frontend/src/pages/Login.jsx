@@ -13,11 +13,14 @@ export default function Login() {
 
   async function submit(e) {
     e.preventDefault();
-    // TODO(TICKET-ADV072):
-    //   1. call api.login(email, password) — it returns { token, role }.
-    //   2. on success: call login(token, role) from AuthContext, then
-    //      navigate('/').
-    //   3. on failure: setError(err.message) so the alert div renders.
+    try {
+      setError(null);
+      const res = await api.login(email, password);
+      login(res.token, res.role);
+      navigate('/');
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    }
   }
 
   return (
