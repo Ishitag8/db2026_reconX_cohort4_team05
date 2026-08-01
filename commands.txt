@@ -1,161 +1,214 @@
 # =============================================================================
-# ReconX Platform Verification & Demo Commands Guide
+# ReconX Platform Verification & Demo Commands Playbook
 # =============================================================================
-# This file contains step-by-step commands to demonstrate and verify the 
-# application's backend functionality (Authentication, CRUD, Audit, Recon).
+# This file contains the complete step-by-step verification flow to test the
+# end-to-end event-driven trade reconciliation platform (Auth, CRUD, Audit, Recon).
 #
-# Tip: Set a terminal variable for the token after logging in so you can 
-# copy-paste the subsequent commands without having to edit them!
+# =============================================================================
+# 1. USER ROLES & PERMISSIONS CONTRACT
+# =============================================================================
+# The application enforces role-based access control (RBAC) at the gateway layer:
+# 
+# - VIEWER:
+#   * GET /api/v1/trades/**        --> Read-only trade access.
+# 
+# - TRADER:
+#   * GET /api/v1/trades/**        --> Read trades.
+#   * POST /api/v1/trades          --> Create trades.
+#   * PUT/PATCH /api/v1/trades/**  --> Modify trades.
+# 
+# - RECON_ANALYST:
+#   * GET /api/v1/trades/**        --> Read trades.
+#   * /api/v1/recon/**             --> Run reconciliation & resolve breaks.
+#   * /api/v1/audit/**             --> View Kafka event audit streams.
+# 
+# - ADMIN:
+#   * Has all permissions above.
+#   * DELETE /api/v1/trades/**     --> Exclusive access to hard-delete/cancel trades.
+# =============================================================================
+# 
+# =============================================================================
+# 2. RECONCILIATION & MATCHING TOLERANCES
+# =============================================================================
+# When a reconciliation job runs, it compares counterparty trades.
+# The matching logic supports different rules (ReconciliationRule):
+# - EXACT: Price and Quantity must match exactly (0% price tolerance, 0 qty tolerance).
+# - PRICE_TOLERANCE_1PCT: Price can deviate by up to 1%. Quantity must match exactly.
+# - PRICE_TOLERANCE_50BPS: Price can deviate by up to 0.5% (50 basis points).
+# - QTY_TOLERANCE_5UNITS: Quantity can deviate by up to 5 units. Price must match.
+# - LOOSE: Price can deviate by up to 5%, Quantity can deviate by up to 10 units.
+#
+# If price/quantity deviations exceed these thresholds, the system flags the 
+# trade as a BREAK and logs it into the `recon_breaks` table with a status of
+# `OPEN` and discrepancy types like:
+# - DATE_MISMATCH, PRICE_MISMATCH, QTY_MISMATCH, or MISSING_EXTERNAL.
+# Breaks must be resolved manually by a RECON_ANALYST or ADMIN.
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# STEP 1: Bring up the Docker Infrastructure (Postgres, Kafka, Grafana, etc.)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# STEP 1: Bring up the Docker Infrastructure
+# =============================================================================
+# Run from the root directory:
 docker compose up -d postgres kafka zookeeper prometheus grafana
 
-# -----------------------------------------------------------------------------
-# STEP 2: Start the Spring Boot Backend (Run from /backend directory)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# STEP 2: Start the Spring Boot Backend
+# =============================================================================
+# Run from the /backend directory:
 .\mvnw.cmd spring-boot:run
 
-# -----------------------------------------------------------------------------
-# STEP 3: Authenticate & Login
-# -----------------------------------------------------------------------------
+# =============================================================================
+# STEP 3: Authenticate & Login (Get JWT Token)
+# =============================================================================
+# Login as Admin (admin@db.com / admin123) or Trader (trader@db.com / trader123)
+#
+# Git Bash / Linux / PowerShell:
 curl -i -X POST http://localhost:8081/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@db.com","password":"admin123"}'
 
-# -----------------------------------------------------------------------------
-# STEP 4: Store your JWT Token in a Terminal Variable
-# -----------------------------------------------------------------------------
-# Copy the token value from the response in Step 3 and paste it here:
+# =============================================================================
+# STEP 4: Store JWT Token in your Terminal Variable
+# =============================================================================
+# Replace <JWT_TOKEN_STRING> with the token returned in Step 3.
+#
+# Git Bash / Linux:
+TOKEN="<JWT_TOKEN_STRING>"
+# Example:
+# TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBkYi5jb20iLC..."
+#
+# PowerShell:
+$TOKEN="<JWT_TOKEN_STRING>"
+# Example:
+# $TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBkYi5jb20iLC..."
 
-# For Git Bash / Linux / macOS Shell:
-TOKEN="YOUR_PASTED_JWT_TOKEN_HERE"
-
-# For PowerShell:
-$TOKEN="YOUR_PASTED_JWT_TOKEN_HERE"
-
-# -----------------------------------------------------------------------------
-# STEP 5: Retrieve List of Trades (GET)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# STEP 5: View All Active Trades (GET)
+# =============================================================================
 # Git Bash / Linux:
 curl -i -X GET http://localhost:8081/api/v1/trades \
   -H "Authorization: Bearer $TOKEN"
-
+#
 # PowerShell:
-curl.exe -i -X GET http://localhost:8081/api/v1/trades -H "Authorization: Bearer $TOKEN"
+Invoke-RestMethod -Uri "http://localhost:8081/api/v1/trades" -Headers @{ Authorization = "Bearer $TOKEN" }
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # STEP 6: Create a New Trade (POST)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Required Role: TRADER or ADMIN
+#
 # Git Bash / Linux:
 curl -i -X POST http://localhost:8081/api/v1/trades \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"tradeRef":"TRD-20260731-9999","instrumentId":1,"counterpartyId":1,"assetClass":"EQUITY","side":"BUY","quantity":100.00,"price":245.50,"tradeDate":"2026-07-31"}'
-
+  -d '{"tradeRef":"TRD-20260731-9999","instrumentId":1,"counterpartyId":1,"assetClass":"EQUITY","side":"BUY","quantity":100.0,"price":245.5,"tradeDate":"2026-07-31"}'
+#
 # PowerShell:
-curl.exe -i -X POST http://localhost:8081/api/v1/trades -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"tradeRef":"TRD-20260731-9999","instrumentId":1,"counterpartyId":1,"assetClass":"EQUITY","side":"BUY","quantity":100.00,"price":245.50,"tradeDate":"2026-07-31"}'
+Invoke-RestMethod -Uri "http://localhost:8081/api/v1/trades" -Method Post -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" -Body '{"tradeRef":"TRD-20260731-9999","instrumentId":1,"counterpartyId":1,"assetClass":"EQUITY","side":"BUY","quantity":100.0,"price":245.5,"tradeDate":"2026-07-31"}'
 
-# -----------------------------------------------------------------------------
-# STEP 7: Partially Update Trade Status to MATCHED (PATCH)
-# -----------------------------------------------------------------------------
-# Note: Replaces '504' with whichever trade ID was returned in Step 6 (e.g. 504)
-
+# =============================================================================
+# STEP 7: Modify/Update a Trade (PUT)
+# =============================================================================
+# Required Role: TRADER or ADMIN
+# Replace <TRADE_ID> with the ID returned during trade creation in Step 6 (e.g. 505)
+#
 # Git Bash / Linux:
-curl -i -X PATCH http://localhost:8081/api/v1/trades/504/status \
+curl -i -X PUT http://localhost:8081/api/v1/trades/<TRADE_ID> \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"status":"MATCHED"}'
-
+  -d '{"tradeRef":"TRD-20260731-9999","instrumentId":1,"counterpartyId":1,"assetClass":"EQUITY","side":"BUY","quantity":100.0,"price":280.0,"tradeDate":"2026-07-31"}'
+# Example:
+# curl -i -X PUT http://localhost:8081/api/v1/trades/505 -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"tradeRef":"TRD-20260731-9999","instrumentId":1,"counterpartyId":1,"assetClass":"EQUITY","side":"BUY","quantity":100.0,"price":280.0,"tradeDate":"2026-07-31"}'
+#
 # PowerShell:
-curl.exe -i -X PATCH http://localhost:8081/api/v1/trades/504/status -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"status":"MATCHED"}'
+Invoke-RestMethod -Uri "http://localhost:8081/api/v1/trades/<TRADE_ID>" -Method Put -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" -Body '{"tradeRef":"TRD-20260731-9999","instrumentId":1,"counterpartyId":1,"assetClass":"EQUITY","side":"BUY","quantity":100.0,"price":280.0,"tradeDate":"2026-07-31"}'
+# Example:
+# Invoke-RestMethod -Uri "http://localhost:8081/api/v1/trades/505" -Method Put -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" -Body '{"tradeRef":"TRD-20260731-9999","instrumentId":1,"counterpartyId":1,"assetClass":"EQUITY","side":"BUY","quantity":100.0,"price":280.0,"tradeDate":"2026-07-31"}'
 
-# -----------------------------------------------------------------------------
-# STEP 8: Get Audit Trail History for a Trade (GET)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# STEP 8: Get Kafka Event Stream for a Trade (GET)
+# =============================================================================
+# Required Role: RECON_ANALYST or ADMIN
+# Replace <TRADE_REF> with the tradeRef code (e.g. TRD-2026-000002)
+#
 # Git Bash / Linux:
-curl -i -X GET http://localhost:8081/api/v1/audit/trades/TRD-2026-000002 \
+curl -i -X GET http://localhost:8081/api/v1/audit/trades/<TRADE_REF>/events \
   -H "Authorization: Bearer $TOKEN"
-
+# Example:
+# curl -i -X GET http://localhost:8081/api/v1/audit/trades/TRD-2026-000002/events -H "Authorization: Bearer $TOKEN"
+#
 # PowerShell:
-curl.exe -i -X GET http://localhost:8081/api/v1/audit/trades/TRD-2026-000002 -H "Authorization: Bearer $TOKEN"
+Invoke-RestMethod -Uri "http://localhost:8081/api/v1/audit/trades/<TRADE_REF>/events" -Headers @{ Authorization = "Bearer $TOKEN" }
+# Example:
+# Invoke-RestMethod -Uri "http://localhost:8081/api/v1/audit/trades/TRD-2026-000002/events" -Headers @{ Authorization = "Bearer $TOKEN" }
 
-# -----------------------------------------------------------------------------
-# STEP 9: Get Kafka Event Stream for a Trade (GET)
-# -----------------------------------------------------------------------------
-# Git Bash / Linux:
-curl -i -X GET http://localhost:8081/api/v1/audit/trades/TRD-2026-000002/events \
-  -H "Authorization: Bearer $TOKEN"
-
-# PowerShell:
-curl.exe -i -X GET http://localhost:8081/api/v1/audit/trades/TRD-2026-000002/events -H "Authorization: Bearer $TOKEN"
-
-# -----------------------------------------------------------------------------
-# STEP 10: Trigger Reconciliation Job Run (POST)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# STEP 9: Trigger Reconciliation Run (POST)
+# =============================================================================
+# Required Role: RECON_ANALYST or ADMIN
+# Runs matching engine over counterparty trades within a date range.
+#
 # Git Bash / Linux:
 curl -i -X POST http://localhost:8081/api/v1/recon/run \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"asOfDate":"2026-07-31"}'
+  -d '{"from":"2026-07-31","to":"2026-07-31","counterpartyId":1}'
+#
+# PowerShell (Native - Recommended to avoid escaping issues):
+Invoke-RestMethod -Uri "http://localhost:8081/api/v1/recon/run" -Method Post -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" -Body '{"from":"2026-07-31","to":"2026-07-31","counterpartyId":1}'
+#
+# PowerShell (using curl.exe - requires escaping double quotes):
+curl.exe -i -X POST http://localhost:8081/api/v1/recon/run -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{\"from\":\"2026-07-31\",\"to\":\"2026-07-31\",\"counterpartyId\":1}'
 
-# PowerShell:
-curl.exe -i -X POST http://localhost:8081/api/v1/recon/run -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"asOfDate":"2026-07-31"}'
-
-# -----------------------------------------------------------------------------
-# STEP 11: Get Reconciliation Job Results (GET)
-# -----------------------------------------------------------------------------
-# Replace '<JOB_ID>' with the jobId string returned in Step 10
-
+# =============================================================================
+# STEP 10: Get Reconciliation Job Results (GET)
+# =============================================================================
+# Required Role: RECON_ANALYST or ADMIN
+# Replace <JOB_ID> with the jobId returned in Step 9 (e.g. fe283220-e897-4242-8144-6c1ea3e0277a)
+#
 # Git Bash / Linux:
 curl -i -X GET http://localhost:8081/api/v1/recon/jobs/<JOB_ID>/results \
   -H "Authorization: Bearer $TOKEN"
-
+# Example:
+# curl -i -X GET http://localhost:8081/api/v1/recon/jobs/fe283220-e897-4242-8144-6c1ea3e0277a/results -H "Authorization: Bearer $TOKEN"
+#
 # PowerShell:
-curl.exe -i -X GET http://localhost:8081/api/v1/recon/jobs/<JOB_ID>/results -H "Authorization: Bearer $TOKEN"
+Invoke-RestMethod -Uri "http://localhost:8081/api/v1/recon/jobs/<JOB_ID>/results" -Headers @{ Authorization = "Bearer $TOKEN" }
+# Example:
+# Invoke-RestMethod -Uri "http://localhost:8081/api/v1/recon/jobs/fe283220-e897-4242-8144-6c1ea3e0277a/results" -Headers @{ Authorization = "Bearer $TOKEN" }
 
-# -----------------------------------------------------------------------------
-# STEP 12: Resolve Reconciliation Break (PUT)
-# -----------------------------------------------------------------------------
-# Replace '1' with whichever break ID you want to resolve
-
+# =============================================================================
+# STEP 11: Resolve a Reconciliation Break (PUT)
+# =============================================================================
+# Required Role: RECON_ANALYST or ADMIN
+# Replace <BREAK_ID> with the ID of the break from Step 10 results (e.g. 1)
+#
 # Git Bash / Linux:
-curl -i -X PUT http://localhost:8081/api/v1/recon/results/1/resolve \
+curl -i -X PUT http://localhost:8081/api/v1/recon/results/<BREAK_ID>/resolve \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"note":"Resolved manually by operations team"}'
-
+# Example:
+# curl -i -X PUT http://localhost:8081/api/v1/recon/results/1/resolve -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"note":"Resolved manually by operations team"}'
+#
 # PowerShell:
-curl.exe -i -X PUT http://localhost:8081/api/v1/recon/results/1/resolve -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"note":"Resolved manually by operations team"}'
+Invoke-RestMethod -Uri "http://localhost:8081/api/v1/recon/results/<BREAK_ID>/resolve" -Method Put -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" -Body '{"note":"Resolved manually by operations team"}'
+# Example:
+# Invoke-RestMethod -Uri "http://localhost:8081/api/v1/recon/results/1/resolve" -Method Put -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" -Body '{"note":"Resolved manually by operations team"}'
 
-# -----------------------------------------------------------------------------
-# STEP 13: Caching & Actuator Caches Verification (TICKET-ADV081 - TICKET-ADV082)
-# -----------------------------------------------------------------------------
-# Retrieve the list of active caches (authenticated):
+# =============================================================================
+# STEP 12: Caching & Actuator Caches Verification
+# =============================================================================
 # Git Bash / Linux:
-curl -i -X GET http://localhost:8081/api/actuator/caches \
-  -H "Authorization: Bearer $TOKEN"
-
+curl -i -X GET http://localhost:8081/api/actuator/caches -H "Authorization: Bearer $TOKEN"
+#
 # PowerShell:
-curl.exe -i -X GET http://localhost:8081/api/actuator/caches -H "Authorization: Bearer $TOKEN"
+Invoke-RestMethod -Uri "http://localhost:8081/api/actuator/caches" -Headers @{ Authorization = "Bearer $TOKEN" }
 
-# Retrieve details for the "instruments" cache:
-# Git Bash / Linux:
-curl -i -X GET http://localhost:8081/api/actuator/caches/instruments \
-  -H "Authorization: Bearer $TOKEN"
-
-# PowerShell:
-curl.exe -i -X GET http://localhost:8081/api/actuator/caches/instruments -H "Authorization: Bearer $TOKEN"
-
-# -----------------------------------------------------------------------------
-# STEP 14: Prometheus Metrics Verification (TICKET-ADV083)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# STEP 13: Prometheus Metrics Verification
+# =============================================================================
 # Restart Prometheus Docker container to pick up changes in prometheus.yml:
 docker compose restart prometheus
-
-# Scrape the Prometheus Actuator endpoint for custom counters and cache metrics:
-# Git Bash / Linux / PowerShell:
+# Scrape Actuator endpoint for custom counters:
 curl -s http://localhost:8081/api/actuator/prometheus | grep -E "trade_created_total|trade_total|cache_"
-

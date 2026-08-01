@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.repository;
 
 import com.dbtraining.reconx.repository.entity.Trade;
+import com.dbtraining.reconx.repository.entity.TradeStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,5 +37,5 @@ public interface TradeRepository
                               @Param("counterpartyId") Long counterpartyId,
                               Pageable pageable);
 
-    long countByStatus(String status);
+    long countByStatus(TradeStatus status);
 }

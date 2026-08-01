@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -48,17 +49,20 @@ public class TradeService {
     private final InstrumentRepository instRepo;
     private final TradeEventProducer events;
     private final TradeMetrics metrics;
+    private final ApplicationEventPublisher publisher;
 
     public TradeService(TradeRepository tradeRepo,
                         CounterpartyRepository cpRepo,
                         InstrumentRepository instRepo,
                         TradeEventProducer events,
-                        TradeMetrics metrics) {
+                        TradeMetrics metrics,
+                        ApplicationEventPublisher publisher) {
         this.tradeRepo = tradeRepo;
         this.cpRepo = cpRepo;
         this.instRepo = instRepo;
         this.events = events;
         this.metrics = metrics;
+        this.publisher = publisher;
     }
 
     private static void initLazyRelations(Trade trade) {
@@ -115,6 +119,8 @@ public class TradeService {
                 "status=" + saved.getStatus()
         ));
 
+        publisher.publishEvent(saved);
+
         return saved;
     }
 
@@ -159,6 +165,8 @@ public class TradeService {
                         + ",price=" + saved.getPrice()
         ));
 
+        publisher.publishEvent(saved);
+
         return saved;
     }
 
@@ -193,6 +201,8 @@ public class TradeService {
                 "status=" + saved.getStatus()
         ));
 
+        publisher.publishEvent(saved);
+
         return saved;
     }
 
@@ -215,6 +225,8 @@ public class TradeService {
                 null,
                 null
         ));
+
+        publisher.publishEvent(trade);
     }
 
     @Transactional(readOnly = true)

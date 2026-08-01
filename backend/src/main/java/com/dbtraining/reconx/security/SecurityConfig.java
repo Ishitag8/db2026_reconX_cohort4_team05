@@ -11,6 +11,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandlerImpl;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.cors.CorsConfiguration;
 
 
 /**
@@ -33,17 +38,33 @@ public class SecurityConfig {
     }
 
     @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(
+                "/v1/trades/stream",
+                "/v1/trades/recent",
+                "/v1/recon/breaks/count"
+        );
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(request -> {
+                    var config = new CorsConfiguration();
+                    config.setAllowedOrigins(java.util.List.of("*"));
+                    config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                    config.setAllowedHeaders(java.util.List.of("*"));
+                    return config;
+                }))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(e -> e
                     .authenticationEntryPoint(
-                            new org.springframework.security.web.authentication.HttpStatusEntryPoint(
-                                    org.springframework.http.HttpStatus.UNAUTHORIZED))
+                             new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                     .accessDeniedHandler(
-                            new org.springframework.security.web.access.AccessDeniedHandlerImpl()))
+                             new AccessDeniedHandlerImpl()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/v1/trades/stream").permitAll()
                         .requestMatchers(
                                 "/auth/login",
                                 "/actuator/health/**",
@@ -52,7 +73,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/h2/**")
+                                "/h2/**",
+                                "/error")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/trades/**")
                         .hasAnyRole("VIEWER", "TRADER", "RECON_ANALYST", "ADMIN")
