@@ -3,7 +3,9 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { useNavigate } from 'react-router-dom';
 import { withAuth } from '@components/withAuth.jsx';
+import { useToast } from '@context/ToastContext.jsx';
 import { api } from '@services/apiService.js';
 
 const schema = yup.object({
@@ -18,66 +20,103 @@ const schema = yup.object({
 });
 
 function AddTrade() {
-  const [serverError, setServerError] = React.useState(null);
-  const [successMsg, setSuccessMsg] = React.useState(null);
+  const navigate = useNavigate();
+  const toast = useToast();
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } =
         useForm({ resolver: yupResolver(schema), mode: 'onBlur' });
 
   async function onSubmit(values) {
     try {
-      setServerError(null);
-      setSuccessMsg(null);
       await api.createTrade(values);
-      setSuccessMsg('Trade created successfully!');
+      toast.success('Trade created successfully');
       reset();
+      navigate('/trades');
     } catch (err) {
-      setServerError(err.message || 'Failed to create trade');
+      toast.error(err.message || 'Failed to create trade');
     }
   }
 
   return (
-    <section>
-      <h2>Add trade</h2>
-      {successMsg && <div className="form-success">{successMsg}</div>}
-      {serverError && <div role="alert" className="form-server-error">{serverError}</div>}
-      
-      <form onSubmit={handleSubmit(onSubmit)} className="trade-form" noValidate>
-        <label>Trade ref   <input {...register('tradeRef')} placeholder="EQU-20260603-0001" /></label>
-        {errors.tradeRef && <p className="form-error" role="alert">{errors.tradeRef.message}</p>}
+    <section className="trades-page">
+      <div className="page-header">
+        <div>
+          <h1>Add Trade</h1>
+          <p>Create a new trade ticket with the same controls and validation rules.</p>
+        </div>
+      </div>
 
-        <label>Instrument id   <input type="number" {...register('instrumentId')} placeholder="1" /></label>
-        {errors.instrumentId && <p className="form-error" role="alert">{errors.instrumentId.message}</p>}
+      <section className="page-card form-card">
+        <div className="section-card__header section-card__header--tight">
+          <div>
+            <h2>Trade Details</h2>
+            <p>Enter the instrument, counterparty, and execution data.</p>
+          </div>
+        </div>
 
-        <label>Counterparty id <input type="number" {...register('counterpartyId')} placeholder="1" /></label>
-        {errors.counterpartyId && <p className="form-error" role="alert">{errors.counterpartyId.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="trade-form" noValidate>
+        <div className="trade-form__field">
+          <label>Trade ref</label>
+          <input {...register('tradeRef')} placeholder="EQU-20260603-0001" />
+          {errors.tradeRef && <p className="form-error" role="alert">{errors.tradeRef.message}</p>}
+        </div>
 
-        <label>Asset class    <select {...register('assetClass')}>
-          <option value="">Select...</option>
-          <option value="EQUITY">EQUITY</option>
-          <option value="FX">FX</option>
-          <option value="BOND">BOND</option>
-          <option value="DERIVATIVE">DERIVATIVE</option>
-        </select></label>
-        {errors.assetClass && <p className="form-error" role="alert">{errors.assetClass.message}</p>}
+        <div className="trade-form__field">
+          <label>Instrument id</label>
+          <input type="number" {...register('instrumentId')} placeholder="1" />
+          {errors.instrumentId && <p className="form-error" role="alert">{errors.instrumentId.message}</p>}
+        </div>
 
-        <label>Side <select {...register('side')}>
-          <option value="">Select...</option>
-          <option value="BUY">BUY</option>
-          <option value="SELL">SELL</option>
-        </select></label>
-        {errors.side && <p className="form-error" role="alert">{errors.side.message}</p>}
+        <div className="trade-form__field">
+          <label>Counterparty id</label>
+          <input type="number" {...register('counterpartyId')} placeholder="1" />
+          {errors.counterpartyId && <p className="form-error" role="alert">{errors.counterpartyId.message}</p>}
+        </div>
 
-        <label>Quantity  <input type="number" step="any" {...register('quantity')} placeholder="100.00" /></label>
-        {errors.quantity && <p className="form-error" role="alert">{errors.quantity.message}</p>}
+        <div className="trade-form__field">
+          <label>Asset class</label>
+          <select {...register('assetClass')}>
+            <option value="">Select...</option>
+            <option value="EQUITY">EQUITY</option>
+            <option value="FX">FX</option>
+            <option value="BOND">BOND</option>
+            <option value="DERIVATIVE">DERIVATIVE</option>
+          </select>
+          {errors.assetClass && <p className="form-error" role="alert">{errors.assetClass.message}</p>}
+        </div>
 
-        <label>Price     <input type="number" step="any" {...register('price')} placeholder="150.25" /></label>
-        {errors.price && <p className="form-error" role="alert">{errors.price.message}</p>}
+        <div className="trade-form__field">
+          <label>Side</label>
+          <select {...register('side')}>
+            <option value="">Select...</option>
+            <option value="BUY">BUY</option>
+            <option value="SELL">SELL</option>
+          </select>
+          {errors.side && <p className="form-error" role="alert">{errors.side.message}</p>}
+        </div>
 
-        <label>Trade date<input type="date" {...register('tradeDate')} /></label>
-        {errors.tradeDate && <p className="form-error" role="alert">{errors.tradeDate.message}</p>}
+        <div className="trade-form__field">
+          <label>Quantity</label>
+          <input type="number" step="any" {...register('quantity')} placeholder="100.00" />
+          {errors.quantity && <p className="form-error" role="alert">{errors.quantity.message}</p>}
+        </div>
 
-        <button disabled={isSubmitting} type="submit">Submit</button>
-      </form>
+        <div className="trade-form__field">
+          <label>Price</label>
+          <input type="number" step="any" {...register('price')} placeholder="150.25" />
+          {errors.price && <p className="form-error" role="alert">{errors.price.message}</p>}
+        </div>
+
+        <div className="trade-form__field">
+          <label>Trade date</label>
+          <input type="date" {...register('tradeDate')} />
+          {errors.tradeDate && <p className="form-error" role="alert">{errors.tradeDate.message}</p>}
+        </div>
+
+        <div className="trade-form__actions">
+          <button disabled={isSubmitting} type="submit">Submit</button>
+        </div>
+        </form>
+      </section>
     </section>
   );
 }
