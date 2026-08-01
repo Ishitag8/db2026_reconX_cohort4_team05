@@ -68,27 +68,28 @@ public class JwtTokenProvider {
     }
 
     public String generate(String email, String role) {
-        java.time.Instant now = java.time.Instant.now();
-        java.util.Date issuedAt = java.util.Date.from(now);
-        java.util.Date expiresAt = java.util.Date.from(now.plusSeconds(expirationMinutes * 60));
-
+        Instant now = Instant.now();
+        Instant exp = now.plusSeconds(expirationMinutes * 60);
         return Jwts.builder()
-                .setSubject(email)
-                .setIssuer(issuer)
-                .setIssuedAt(issuedAt)
-                .setExpiration(expiresAt)
-                .claim("role", role)
+                .subject(email)
+                .issuer(issuer)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(exp))
+                .claims(Map.of("role", role))
                 .signWith(key)
                 .compact();
     }
 
     public Claims parse(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .requireIssuer(issuer)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
 
-    return Jwts.parser()
-            .verifyWith(key)
-            .requireIssuer(issuer)
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
-}
+    public long expirationSeconds() {
+        return expirationMinutes * 60;
+    }
 }
