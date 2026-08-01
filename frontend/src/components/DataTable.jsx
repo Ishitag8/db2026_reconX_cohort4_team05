@@ -1,46 +1,133 @@
 // TICKET-ADV114 — Compound <DataTable> with Header / Body / Pagination subcomponents.
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 
-const DataTableContext = createContext({ sort: null, page: 0, size: 20 });
+const DataTableContext = createContext(null);
 
-export default function DataTable({ children, sort, page = 0, size = 20, onSortChange }) {
-  // TODO(TICKET-ADV114): wrap `children` in DataTableContext.Provider so the
-  //                     Header / Body / Pagination subcomponents can read
-  //                     sort/page/size/onSortChange without prop drilling.
+function useDataTable() {
+  const context = useContext(DataTableContext);
+  if (!context) {
+    throw new Error('DataTable components must be rendered inside <DataTable>');
+  }
+  return context;
+}
+
+export default function DataTable({ children, data = [], pageSize = 10, page: controlledPage, onPageChange, onSortChange }) {
+  const [internalPage, setInternalPage] = useState(0);
+  const page = controlledPage ?? internalPage;
+  const setPage = onPageChange ?? setInternalPage;
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
+
+  const sortedData = useMemo(() => {
+    if (!sortKey) {
+      return data;
+    }
+    return [...data].sort((a, b) => {
+      const aValue = a[sortKey];
+      const bValue = b[sortKey];
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+      if (aValue === bValue) return 0;
+      const comparison = aValue > bValue ? 1 : -1;
+      return sortDir === 'asc' ? comparison : -comparison;
+    });
+  }, [data, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
+
+  const pagedData = useMemo(() => {
+    const start = page * pageSize;
+    return sortedData.slice(start, start + pageSize);
+  }, [sortedData, page, pageSize]);
+
+  const value = useMemo(
+    () => ({
+      rows: pagedData,
+      page,
+      pageSize,
+      totalPages,
+      sortKey,
+      sortDir,
+      setPage,
+      setSortKey,
+      setSortDir,
+      onSortChange,
+    }),
+    [pagedData, page, pageSize, totalPages, sortKey, sortDir, onSortChange]
+  );
+
   return (
-    <DataTableContext.Provider value={{ sort, page, size, onSortChange }}>
+    <DataTableContext.Provider value={value}>
       <div className="data-table">{children}</div>
     </DataTableContext.Provider>
   );
 }
 
 DataTable.Header = function Header({ columns }) {
-  // TODO(TICKET-ADV114): pull `sort` + `onSortChange` from DataTableContext and
-  //                     render a clickable <button> per column. Active column
-  //                     should get a different className.
+  const { sortKey, sortDir, setSortKey, setSortDir, setPage, onSortChange } = useDataTable();
+
+  function handleClick(key) {
+    if (sortKey === key) {
+      setSortDir((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+    setPage(0);
+    if (onSortChange) {
+      onSortChange(key);
+    }
+  }
+
   return (
     <div className="data-table__header" role="row">
-      {/* TODO(TICKET-ADV114): map columns -> <button>{c.label}</button> */}
+      {columns.map((column) => {
+        const active = sortKey === column.key;
+        const direction = active ? sortDir : 'asc';
+        return (
+          <button
+            key={column.key}
+            type="button"
+            className={`data-table__th ${active ? 'data-table__th--active' : ''}`}
+            onClick={() => handleClick(column.key)}
+            aria-sort={active ? direction : 'none'}
+          >
+            {column.label}
+          </button>
+        );
+      })}
     </div>
   );
 };
 
-DataTable.Body = function Body({ rows, render }) {
-  // TODO(TICKET-ADV114): iterate `rows` and call `render(row)` for each,
-  //                     wrapping in a div.data-table__row with a stable key.
+DataTable.Body = function Body({ rows: explicitRows, render }) {
+  const { rows: contextRows } = useDataTable();
+  const rows = explicitRows ?? contextRows;
   return (
     <div className="data-table__body">
-      {/* TODO(TICKET-ADV114): rows.map(...) */}
+      {rows.map((row) => (
+        <div key={row.id ?? row.tradeRef} className="data-table__row" role="row">
+          {render(row)}
+        </div>
+      ))}
     </div>
   );
 };
 
-DataTable.Pagination = function Pagination({ page, totalPages, onChange }) {
-  // TODO(TICKET-ADV114): render prev / next buttons that call onChange(page±1).
-  //                     Disable prev at page === 0, next at page === totalPages-1.
+DataTable.Pagination = function Pagination() {
+  const { page, totalPages, setPage } = useDataTable();
+
   return (
     <nav className="data-table__pagination" aria-label="Pagination">
-      {/* TODO(TICKET-ADV114): ‹ {page+1} / {totalPages} › */}
+      <button type="button" disabled={page === 0} onClick={() => setPage(page - 1)}>
+        ‹
+      </button>
+      <span>
+        {page + 1} / {totalPages}
+      </span>
+      <button type="button" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
+        ›
+      </button>
     </nav>
   );
 };

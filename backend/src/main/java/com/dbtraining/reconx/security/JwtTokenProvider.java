@@ -83,54 +83,12 @@ public class JwtTokenProvider {
     }
 
     public Claims parse(String token) {
-        // Support multiple jjwt versions at runtime by trying the newer parserBuilder
-        // API first via reflection; fall back to the older parser() API if unavailable.
-        try {
-            java.lang.reflect.Method parserBuilderMethod = Jwts.class.getMethod("parserBuilder");
-            Object builder = parserBuilderMethod.invoke(null);
 
-            java.lang.reflect.Method setSigningKey = builder.getClass().getMethod("setSigningKey", java.security.Key.class);
-            Object withKey = setSigningKey.invoke(builder, key);
-
-            java.lang.reflect.Method requireIssuer = withKey.getClass().getMethod("requireIssuer", String.class);
-            Object withIssuer = requireIssuer.invoke(withKey, issuer);
-
-            java.lang.reflect.Method build = withIssuer.getClass().getMethod("build");
-            Object parser = build.invoke(withIssuer);
-
-            java.lang.reflect.Method parseClaimsJws = parser.getClass().getMethod("parseClaimsJws", String.class);
-            Object jws = parseClaimsJws.invoke(parser, token);
-
-            java.lang.reflect.Method getBody = jws.getClass().getMethod("getBody");
-            return (Claims) getBody.invoke(jws);
-        } catch (NoSuchMethodException e) {
-            // parserBuilder() not present — try the older parser() API via reflection
-            try {
-                java.lang.reflect.Method parserMethod = Jwts.class.getMethod("parser");
-                Object parserObj = parserMethod.invoke(null);
-
-                java.lang.reflect.Method setSigningKey2 = parserObj.getClass().getMethod("setSigningKey", java.security.Key.class);
-                Object parserWithKey = setSigningKey2.invoke(parserObj, key);
-
-                java.lang.reflect.Method requireIssuer2 = parserWithKey.getClass().getMethod("requireIssuer", String.class);
-                Object parserWithIssuer = requireIssuer2.invoke(parserWithKey, issuer);
-
-                java.lang.reflect.Method parseClaimsJws2 = parserWithIssuer.getClass().getMethod("parseClaimsJws", String.class);
-                Object jws = parseClaimsJws2.invoke(parserWithIssuer, token);
-
-                java.lang.reflect.Method getBody2 = jws.getClass().getMethod("getBody");
-                return (Claims) getBody2.invoke(jws);
-            } catch (Exception ex) {
-                throw new RuntimeException("Failed to parse JWT (fallback)", ex);
-            }
-        } catch (RuntimeException re) {
-            throw re;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse JWT", e);
-        }
-    }
-
-    public long expirationSeconds() {
-        return expirationMinutes * 60;
-    }
+    return Jwts.parser()
+            .verifyWith(key)
+            .requireIssuer(issuer)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+}
 }
