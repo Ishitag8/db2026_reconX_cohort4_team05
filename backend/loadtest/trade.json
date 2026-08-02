@@ -1,0 +1,10 @@
+{
+  "tradeRef": "PERF-001",
+  "instrumentId": 1,
+  "counterpartyId": 1,
+  "assetClass": "EQUITY",
+  "side": "BUY",
+  "quantity": 100.0,
+  "price": 245.5,
+  "tradeDate": "2026-06-02"
+}

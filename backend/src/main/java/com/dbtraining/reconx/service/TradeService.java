@@ -218,18 +218,6 @@ public class TradeService {
     }
 
     @Transactional(readOnly = true)
-    public Trade findById(Long id) {
-
-        Trade trade = tradeRepo.findById(id)
-                .orElseThrow(() ->
-                        new TradeNotFoundException("id " + id));
-
-        initLazyRelations(trade);
-
-        return trade;
-    }
-
-    @Transactional(readOnly = true)
     public Page<Trade> list(LocalDate from,
                             LocalDate to,
                             String status,
@@ -241,6 +229,8 @@ public class TradeService {
                 .and(hasStatus(status))
                 .and(hasCounterparty(counterpartyId));
 
-        return tradeRepo.findAll(spec, pageable);
+        Page<Trade> page = tradeRepo.findAll(spec, pageable);
+        page.forEach(TradeService::initLazyRelations);
+        return page;
     }
 }
