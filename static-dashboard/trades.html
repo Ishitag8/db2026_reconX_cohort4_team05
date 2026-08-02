@@ -1,0 +1,76 @@
+<!doctype html>
+<!--
+============================================================================
+TICKET-ADV106 — Advanced data table page (sortable, resizable, frozen header)
+============================================================================
+-->
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <title>ReconX — Trades Directory</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="layout__header" role="banner">
+    <h1 class="layout__title">ReconX</h1>
+    <nav class="layout__nav" aria-label="Main navigation">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="trades.html" aria-current="page">Trades</a>
+      <a href="recon.html">Recon</a>
+    </nav>
+    <button id="theme-toggle" aria-label="Toggle light/dark theme">🌗</button>
+  </header>
+
+  <aside class="layout__sidebar" role="complementary">
+    <h2>Quick filters</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard Overview</a></li>
+      <li class="active"><a href="trades.html">All Trades</a></li>
+      <li><a href="#">Audit Trail</a></li>
+    </ul>
+  </aside>
+
+  <main class="layout__main" role="main">
+    <section aria-labelledby="trades-title">
+      <h2 id="trades-title">Executed Trades</h2>
+      <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); margin-top: -10px; margin-bottom: 20px;">
+        Click column headers to sort. Drag column borders to resize.
+      </p>
+
+      <div class="table-scroll">
+        <table class="data-table" id="trades-table">
+          <thead>
+            <tr>
+              <th data-col="tradeRef" data-dir="asc">Trade Ref <span class="resize-handle"></span></th>
+              <th data-col="symbol" data-dir="asc">Instrument <span class="resize-handle"></span></th>
+              <th data-col="quantity" data-dir="asc" data-type="number">Quantity <span class="resize-handle"></span></th>
+              <th data-col="price" data-dir="asc" data-type="number">Price <span class="resize-handle"></span></th>
+              <th data-col="side" data-dir="asc">Side <span class="resize-handle"></span></th>
+              <th data-col="status" data-dir="asc">Status <span class="resize-handle"></span></th>
+            </tr>
+          </thead>
+          <tbody id="trades-tbody">
+            <!-- Dynamically populated via js/trades.js -->
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--color-text-muted); padding: var(--space-5);">
+                Loading trades execution data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="layout__footer" role="contentinfo">
+    <small>ReconX TDI 2026 · static dashboard (Day 7)</small>
+  </footer>
+
+  <script src="js/theme.js"></script>
+  <script src="js/trades.js"></script>
+</body>
+</html>
