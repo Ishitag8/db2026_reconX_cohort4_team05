@@ -54,6 +54,7 @@ public class DatabaseHealthIndicator extends AbstractHealthIndicator {
     @Override
     protected void doHealthCheck(Health.Builder builder) throws Exception {
         long start = System.nanoTime();
+
         try (Connection connection = ds.getConnection();
              Statement statement = connection.createStatement()) {
             statement.setQueryTimeout((int) TIMEOUT.toSeconds());
@@ -69,4 +70,5 @@ public class DatabaseHealthIndicator extends AbstractHealthIndicator {
             builder.down(e).withDetail("query", QUERY);
         }
     }
+
 }

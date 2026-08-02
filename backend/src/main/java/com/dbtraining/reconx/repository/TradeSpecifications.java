@@ -88,3 +88,5 @@ public final class TradeSpecifications {
                 : cb.like(root.get("tradeRef"), pattern + "%");
     }
 }
+
+
