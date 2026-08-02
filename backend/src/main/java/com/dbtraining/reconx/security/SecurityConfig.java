@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
 /**
  * ============================================================================
  * Stateless security filter chain wiring JWT filter
@@ -36,6 +37,12 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(e -> e
+                    .authenticationEntryPoint(
+                            new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                                    org.springframework.http.HttpStatus.UNAUTHORIZED))
+                    .accessDeniedHandler(
+                            new org.springframework.security.web.access.AccessDeniedHandlerImpl()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/login",
@@ -53,7 +60,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/v1/trades/**").hasAnyRole("TRADER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/v1/trades/**").hasAnyRole("TRADER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/v1/trades/**").hasRole("ADMIN")
-                        .requestMatchers("/v1/recon/**").permitAll()
+                        .requestMatchers("/v1/recon/**").hasAnyRole("RECON_ANALYST", "ADMIN")
                         .requestMatchers("/v1/audit/**").hasAnyRole("RECON_ANALYST", "ADMIN")
                         .anyRequest().authenticated())
                 .headers(h -> h.frameOptions(f -> f.disable())) // for /h2 dev console
@@ -61,7 +68,5 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // TODO(TICKET-ADV073): register JwtAuthenticationFilter before
-    // UsernamePasswordAuthenticationFilter.
-    // TODO(TICKET-ADV074): add @EnableMethodSecurity and the RBAC matchers.
+     
 }

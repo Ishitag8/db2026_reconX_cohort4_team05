@@ -10,11 +10,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
-    <changeSet id="008-seed-data-sql" author="student" context="dev,test">
+    <changeSet id="008-seed-data-sql" author="student" context="dev,test,uat">
         <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
-            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM counterparties</sqlCheck>
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM trades</sqlCheck>
         </preConditions>
         <sqlFile path="data/seed_data.sql" relativeToChangelogFile="true"/>
         <rollback>

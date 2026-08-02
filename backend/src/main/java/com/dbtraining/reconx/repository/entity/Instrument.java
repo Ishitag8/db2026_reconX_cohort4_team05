@@ -27,9 +27,8 @@ public class Instrument {
     @Column(nullable = false, length = 200)
     private String name;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "asset_class", nullable = false, length = 20)
-    private AssetClass assetClass;
+    private String assetClass;
 
     @Column(nullable = false, length = 3)
     private String currency;
@@ -46,7 +45,7 @@ public class Instrument {
     public Long getId()                  { return id; }
     public String getSymbol()            { return symbol; }
     public String getName()              { return name; }
-    public AssetClass getAssetClass()    { return assetClass; }
+    public String getAssetClass()    { return assetClass; }
     public String getCurrency()          { return currency; }
     public String getIsin()              { return isin; }
     public Map<String, Object> getMetadata() { return metadata; }
@@ -54,7 +53,7 @@ public class Instrument {
     public void setId(Long id)                  { this.id = id; }
     public void setSymbol(String symbol)        { this.symbol = symbol; }
     public void setName(String name)            { this.name = name; }
-    public void setAssetClass(AssetClass assetClass) { this.assetClass = assetClass; }
+    public void setAssetClass(String assetClass) { this.assetClass = assetClass; }
     public void setCurrency(String currency)    { this.currency = currency; }
     public void setIsin(String isin)            { this.isin = isin; }
     public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }

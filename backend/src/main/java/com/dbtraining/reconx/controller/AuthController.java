@@ -34,14 +34,29 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Exchange email + password for a JWT")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
-        AppUser u = users.findByEmail(req.email())
-                .orElseThrow(() -> new InvalidTradeException("Invalid credentials"));
-        if (!u.getEnabled() || !encoder.matches(req.password(), u.getPasswordHash())) {
-            throw new InvalidTradeException("Invalid credentials");
-        }
-        String token = jwt.generate(u.getEmail(), u.getRole());
-        return ResponseEntity.ok(new LoginResponse(token, "Bearer", jwt.expirationSeconds(), u.getRole()));
+public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) {
+
+    System.out.println(">>> Login reached");
+    System.out.println("Email = " + req.email());
+
+    AppUser u = users.findByEmail(req.email())
+            .orElseThrow(() -> {
+                System.out.println(">>> User not found");
+                return new InvalidTradeException("Invalid credentials");
+            });
+
+    System.out.println(">>> User found: " + u.getEmail());
+    System.out.println(">>> Enabled = " + u.getEnabled());
+
+    boolean ok = encoder.matches(req.password(), u.getPasswordHash());
+    System.out.println(">>> Password matches = " + ok);
+
+    if (!u.getEnabled() || !ok) {
+        throw new InvalidTradeException("Invalid credentials");
     }
+
+    String token = jwt.generate(u.getEmail(), u.getRole());
+    return ResponseEntity.ok(
+            new LoginResponse(token, "Bearer", jwt.expirationSeconds(), u.getRole()));
+}
 }
