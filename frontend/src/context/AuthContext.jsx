@@ -39,12 +39,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const token = sessionStorage.getItem('reconx-token');
     const role = sessionStorage.getItem('reconx-role');
-
-    if (!token || !role) {
-      return null;
-    }
-
-    return { token, role };
+    return token ? { token, role } : null;
   });
 
   const login = (token, role) => {

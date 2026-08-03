@@ -52,7 +52,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/h2/**")
+                                "/h2-console/**")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/trades/stream")
                         .permitAll()

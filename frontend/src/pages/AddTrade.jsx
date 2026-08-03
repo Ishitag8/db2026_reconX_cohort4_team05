@@ -19,7 +19,20 @@ const schema = yup.object({
 
 function AddTrade() {
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } =
-        useForm({ resolver: yupResolver(schema) });
+        useForm({
+          resolver: yupResolver(schema),
+          mode: 'onBlur',
+          defaultValues: {
+            tradeRef: '',
+            instrumentId: '',
+            counterpartyId: '',
+            assetClass: 'EQUITY',
+            side: 'BUY',
+            quantity: '',
+            price: '',
+            tradeDate: '',
+          },
+        });
 
   async function onSubmit(values) {
     await api.createTrade(values);
@@ -29,9 +42,54 @@ function AddTrade() {
   return (
     <section>
       <h2>Add trade</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="trade-form">
-        <label>Trade ref   <input {...register('tradeRef')} placeholder="EQU-20260603-0001" /></label>
-        {errors.tradeRef && <p className="form-error">{errors.tradeRef.message}</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="trade-form" noValidate>
+        <label>Trade ref
+          <input {...register('tradeRef')} placeholder="EQU-20260603-0001" />
+        </label>
+        {errors.tradeRef && <p role="alert" className="form-error">{errors.tradeRef.message}</p>}
+
+        <label>Instrument id
+          <input type="number" {...register('instrumentId')} />
+        </label>
+        {errors.instrumentId && <p role="alert" className="form-error">{errors.instrumentId.message}</p>}
+
+        <label>Counterparty id
+          <input type="number" {...register('counterpartyId')} />
+        </label>
+        {errors.counterpartyId && <p role="alert" className="form-error">{errors.counterpartyId.message}</p>}
+
+        <label>Asset class
+          <select {...register('assetClass')}>
+            <option value="EQUITY">EQUITY</option>
+            <option value="FX">FX</option>
+            <option value="BOND">BOND</option>
+            <option value="DERIVATIVE">DERIVATIVE</option>
+          </select>
+        </label>
+        {errors.assetClass && <p role="alert" className="form-error">{errors.assetClass.message}</p>}
+
+        <label>Side
+          <select {...register('side')}>
+            <option value="BUY">BUY</option>
+            <option value="SELL">SELL</option>
+          </select>
+        </label>
+        {errors.side && <p role="alert" className="form-error">{errors.side.message}</p>}
+
+        <label>Quantity
+          <input type="number" step="0.0001" {...register('quantity')} />
+        </label>
+        {errors.quantity && <p role="alert" className="form-error">{errors.quantity.message}</p>}
+
+        <label>Price
+          <input type="number" step="0.0001" {...register('price')} />
+        </label>
+        {errors.price && <p role="alert" className="form-error">{errors.price.message}</p>}
+
+        <label>Trade date
+          <input type="date" {...register('tradeDate')} />
+        </label>
+        {errors.tradeDate && <p role="alert" className="form-error">{errors.tradeDate.message}</p>}
 
         <label>Instrument id   <input type="number" {...register('instrumentId')} /></label>
         <label>Counterparty id <input type="number" {...register('counterpartyId')} /></label>
