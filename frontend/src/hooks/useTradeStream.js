@@ -7,7 +7,7 @@ export function useTradeStream(url = '/api/v1/trades/stream') {
 
   useEffect(() => {
     let active = true;
-    api.listTrades('?size=200')
+    api.listTrades('?size=5000')
       .then(res => {
         if (active && res && res.items) {
           setTrades(res.items);
@@ -35,7 +35,7 @@ export function useTradeStream(url = '/api/v1/trades/stream') {
             updated[idx] = t;
             return updated;
           }
-          return [t, ...prev].slice(0, 200);
+          return [t, ...prev].slice(0, 5000);
         });
       } catch { /* ignore malformed payload */ }
     };

@@ -104,4 +104,10 @@ public class TradeController {
                 .map(mapper::toResponse)
                 .toList();
     }
+
+    @GetMapping("/stats")
+    @Operation(summary = "Get overall trade statistics for dashboard summary cards")
+    public ResponseEntity<com.dbtraining.reconx.dto.TradeStatsResponse> getStats() {
+        return ResponseEntity.ok(service.getStats());
+    }
 }

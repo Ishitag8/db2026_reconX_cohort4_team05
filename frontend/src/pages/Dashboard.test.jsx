@@ -35,6 +35,18 @@ vi.mock('@hooks/useTradeStream.js', () => ({
   }),
 }));
 
+vi.mock('@services/apiService.js', () => ({
+  api: {
+    getStats: () => Promise.resolve({
+      totalPortfolioValue: 37550,
+      totalTrades: 2,
+      matchedTrades: 1,
+      openBreaks: 1
+    }),
+    listTrades: () => Promise.resolve({ items: [] })
+  }
+}));
+
 function renderWithProviders(ui) {
   sessionStorage.setItem('reconx-token', 'fake-jwt-token');
   sessionStorage.setItem('reconx-role', 'TRADER');
@@ -50,7 +62,7 @@ function renderWithProviders(ui) {
 }
 
 describe('<Dashboard />', () => {
-  it('shows summary cards', () => {
+  it('shows summary cards', async () => {
     renderWithProviders(<Dashboard />);
 
     expect(screen.getByRole('heading', { name: /portfolio value/i })).toBeInTheDocument();
@@ -58,6 +70,6 @@ describe('<Dashboard />', () => {
     expect(screen.getByRole('heading', { name: /open breaks/i })).toBeInTheDocument();
     
     // 100 * 250 + 50 * 251 = 37,550.00
-    expect(screen.getByText(/37,550/)).toBeInTheDocument();
+    expect(await screen.findByText(/37,550/)).toBeInTheDocument();
   });
 });

@@ -253,4 +253,17 @@ public class TradeService {
         list.forEach(TradeService::initLazyRelations);
         return list;
     }
+
+    @Transactional(readOnly = true)
+    public com.dbtraining.reconx.dto.TradeStatsResponse getStats() {
+        java.math.BigDecimal portfolio = tradeRepo.sumPortfolioValue();
+        if (portfolio == null) {
+            portfolio = java.math.BigDecimal.ZERO;
+        }
+        long total = tradeRepo.count();
+        long matched = tradeRepo.countByStatus(TradeStatus.MATCHED);
+        long openBreaks = tradeRepo.countByStatus(TradeStatus.UNMATCHED)
+                + tradeRepo.countByStatus(TradeStatus.DISPUTED);
+        return new com.dbtraining.reconx.dto.TradeStatsResponse(portfolio, total, matched, openBreaks);
+    }
 }

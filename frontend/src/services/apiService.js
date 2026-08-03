@@ -49,4 +49,5 @@ export const api = {
   reconResults: (jobId)      => request('GET', `/v1/recon/jobs/${jobId}/results`),
   audit: (tradeRef)          => request('GET', `/v1/audit/trades/${tradeRef}`),
   searchTrade: (tradeRef)    => request('GET', `/v1/trades/search?tradeRef=` + encodeURIComponent(tradeRef)),
+  getStats: ()               => request('GET', '/v1/trades/stats'),
 };

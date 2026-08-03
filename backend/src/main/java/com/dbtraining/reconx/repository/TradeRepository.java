@@ -38,4 +38,7 @@ public interface TradeRepository
                               Pageable pageable);
 
     long countByStatus(TradeStatus status);
+
+    @Query("SELECT SUM(t.price * t.quantity) FROM Trade t")
+    java.math.BigDecimal sumPortfolioValue();
 }

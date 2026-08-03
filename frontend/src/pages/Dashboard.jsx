@@ -1,9 +1,10 @@
 // TICKET-ADV120 — useMemo for portfolio-value calc.
 // TICKET-ADV116 — useTradeStream live feed.
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { withAuth } from '@components/withAuth.jsx';
 import { useTradeStream } from '@hooks/useTradeStream.js';
 import { useToast } from '@context/ToastContext.jsx';
+import { api } from '@services/apiService.js';
 import { LayoutDashboard, ReceiptText, PlusCircle, RefreshCw } from 'lucide-react';
 
 function StatCard({ label, value }) {
@@ -19,6 +20,13 @@ function Dashboard() {
   const { trades, isConnected } = useTradeStream();
   const { success: triggerToastSuccess } = useToast();
 
+  const [stats, setStats] = useState({
+    totalPortfolioValue: 0,
+    totalTrades: 0,
+    matchedTrades: 0,
+    openBreaks: 0
+  });
+
   useEffect(() => {
     const successMsg = sessionStorage.getItem('reconx-login-success');
     if (successMsg) {
@@ -27,36 +35,35 @@ function Dashboard() {
     }
   }, [triggerToastSuccess]);
 
-  const portfolioValue = useMemo(
-    () => trades.reduce((sum, t) => sum + ((t.quantity !== undefined ? t.quantity : t.qty || 0) * (t.price || 0)), 0),
-    [trades]
-  );
+  useEffect(() => {
+    let active = true;
+    api.getStats()
+      .then(res => {
+        if (active && res) {
+          setStats(res);
+        }
+      })
+      .catch(err => {
+        // eslint-disable-next-line no-console
+        console.error('Failed to load dashboard stats:', err);
+      });
+    return () => {
+      active = false;
+    };
+  }, [trades]);
 
-  const matched = useMemo(
-    () => trades.filter((t) => t.status === 'MATCHED').length,
-    [trades]
-  );
-
-  const breaks = useMemo(
-    () => trades.filter((t) => ['UNMATCHED', 'DISPUTED', 'BREAK'].includes(t.status)).length,
-    [trades]
-  );
-
-  const averageTradeValue = useMemo(
-    () => {
-      if (!trades.length) return 0;
-      return trades.reduce((sum, t) => sum + ((t.quantity !== undefined ? t.quantity : t.qty || 0) * (t.price || 0)), 0) / trades.length;
-    },
-    [trades]
-  );
+  const averageTradeValue = useMemo(() => {
+    if (stats.totalTrades === 0) return 0;
+    return stats.totalPortfolioValue / stats.totalTrades;
+  }, [stats.totalTrades, stats.totalPortfolioValue]);
 
   const recentTrades = useMemo(() => trades.slice(0, 4), [trades]);
 
   const topStatus = useMemo(() => {
-    if (trades.length === 0) return 'No activity yet';
-    if (matched >= breaks) return 'Matched flow leading';
+    if (stats.totalTrades === 0) return 'No activity yet';
+    if (stats.matchedTrades >= stats.openBreaks) return 'Matched flow leading';
     return 'Open breaks require attention';
-  }, [trades.length, matched, breaks]);
+  }, [stats.totalTrades, stats.matchedTrades, stats.openBreaks]);
 
   return (
     <section className="dashboard-page">
@@ -71,10 +78,10 @@ function Dashboard() {
         </div>
       </div>
       <div className="stat-grid dashboard-hero-grid">
-        <StatCard label="Portfolio value (USD)" value={portfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} />
-        <StatCard label="Trades streamed" value={trades.length} />
-        <StatCard label="Matched" value={matched} />
-        <StatCard label="Open breaks" value={breaks} />
+        <StatCard label="Portfolio value (USD)" value={stats.totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} />
+        <StatCard label="Total Trades" value={stats.totalTrades} />
+        <StatCard label="Matched" value={stats.matchedTrades} />
+        <StatCard label="Open breaks" value={stats.openBreaks} />
       </div>
 
       <div className="dashboard-split">
@@ -115,7 +122,7 @@ function Dashboard() {
               <PlusCircle size={18} strokeWidth={2.2} />
               <div>
                 <span>Next action</span>
-                <strong>{breaks > 0 ? 'Review breaks' : 'Capture new trade'}</strong>
+                <strong>{stats.openBreaks > 0 ? 'Review breaks' : 'Capture new trade'}</strong>
               </div>
             </article>
           </div>
