@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ============================================================================
@@ -38,6 +40,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ReconciliationEngine {
+    private static final Logger log =
+        LoggerFactory.getLogger(ReconciliationEngine.class);
 
     @Timed(value = "reconciliation.duration", description = "Wall time of reconcile()", percentiles = { 0.5, 0.95,
             0.99 }, histogram = true)
@@ -105,4 +109,15 @@ public class ReconciliationEngine {
             case DerivativeTrade d -> new BigDecimal[] { d.strike(), d.quantity() };
         };
     }
+    public void scheduleRecon(String tradeRef) {
+    log.info("Scheduling reconciliation for tradeRef={}", tradeRef);
+
+    // TODO: Implement scheduling logic in a later ticket.
+}
+
+public void cancelPendingRecon(String tradeRef) {
+    log.info("Cancelling pending reconciliation for tradeRef={}", tradeRef);
+
+    // TODO: Implement cancellation logic in a later ticket.
+}
 }
