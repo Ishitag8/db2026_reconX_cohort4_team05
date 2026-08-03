@@ -37,3 +37,8 @@ each with a `README.md` that contains:
 Read it the evening before Day 1 starts, and run the setup checklist on your
 own laptop. If anything in the checklist fails, post in `#tdi-2026-help`
 **before** Day 1 so we can unblock you in the 09:00 1:1.
+
+## Cross-day reference
+
+For a consolidated explanation of how the system works end to end, see [application-flow-notes.md](./application-flow-notes.md).
+It summarizes how data and control flow through the database, backend, UI, and monitoring layers from Days 1–8.

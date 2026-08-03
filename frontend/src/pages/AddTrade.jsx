@@ -1,4 +1,4 @@
-// TICKET-ADV123 — React Hook Form + Yup validation.
+// React Hook Form + Yup validation.
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -8,13 +8,13 @@ import { api } from '@services/apiService.js';
 
 const schema = yup.object({
   tradeRef:         yup.string().matches(/^[A-Z]{3}-\d{8}-\d{4}$/, 'AAA-YYYYMMDD-NNNN').required(),
-  instrumentId:     yup.number().typeError('Must be a number').integer().positive().required(),
-  counterpartyId:   yup.number().typeError('Must be a number').integer().positive().required(),
+  instrumentId:     yup.number().integer().positive().required(),
+  counterpartyId:   yup.number().integer().positive().required(),
   assetClass:       yup.string().oneOf(['EQUITY','FX','BOND','DERIVATIVE']).required(),
   side:             yup.string().oneOf(['BUY','SELL']).required(),
-  quantity:         yup.number().typeError('Must be a number').positive().required(),
-  price:            yup.number().typeError('Must be a number').positive().required(),
-  tradeDate:        yup.date().typeError('Must be a valid date').required(),
+  quantity:         yup.number().positive().required(),
+  price:            yup.number().positive().required(),
+  tradeDate:        yup.date().required(),
 });
 
 function AddTrade() {
@@ -90,6 +90,19 @@ function AddTrade() {
           <input type="date" {...register('tradeDate')} />
         </label>
         {errors.tradeDate && <p role="alert" className="form-error">{errors.tradeDate.message}</p>}
+
+        <label>Instrument id   <input type="number" {...register('instrumentId')} /></label>
+        <label>Counterparty id <input type="number" {...register('counterpartyId')} /></label>
+        <label>Asset class    <select {...register('assetClass')}>
+          <option value="EQUITY">EQUITY</option><option value="FX">FX</option>
+          <option value="BOND">BOND</option><option value="DERIVATIVE">DERIVATIVE</option>
+        </select></label>
+        <label>Side <select {...register('side')}>
+          <option value="BUY">BUY</option><option value="SELL">SELL</option>
+        </select></label>
+        <label>Quantity  <input type="number" step="0.0001" {...register('quantity')} /></label>
+        <label>Price     <input type="number" step="0.0001" {...register('price')} /></label>
+        <label>Trade date<input type="date" {...register('tradeDate')} /></label>
 
         <button disabled={isSubmitting} type="submit">Submit</button>
       </form>
