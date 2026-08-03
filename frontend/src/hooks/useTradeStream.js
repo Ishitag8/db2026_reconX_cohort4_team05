@@ -4,7 +4,14 @@ import { useEffect, useState } from 'react';
 const MAX_BUFFER = 200;
 
 export function useTradeStream(url = '/api/v1/trades/stream') {
-  const [trades, setTrades] = useState([]);
+  const [trades, setTrades] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('reconx-session-trades');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [isConnected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -14,7 +21,14 @@ export function useTradeStream(url = '/api/v1/trades/stream') {
     sse.onmessage = (e) => {
       try {
         const trade = JSON.parse(e.data);
-        setTrades((prev) => [trade, ...prev].slice(0, MAX_BUFFER));
+        setTrades((prev) => {
+          if (prev.some((t) => t.id === trade.id || t.tradeRef === trade.tradeRef)) {
+            return prev;
+          }
+          const next = [trade, ...prev].slice(0, MAX_BUFFER);
+          sessionStorage.setItem('reconx-session-trades', JSON.stringify(next));
+          return next;
+        });
       } catch { /* ignore malformed payload */ }
     };
     return () => sse.close();

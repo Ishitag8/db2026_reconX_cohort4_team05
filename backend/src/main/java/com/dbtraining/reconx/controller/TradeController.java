@@ -96,4 +96,18 @@ public class TradeController {
         service.softDelete(id, String.valueOf(principal));
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search")
+    @Operation(summary = "Search trades by partial trade reference")
+    public List<TradeResponse> searchByRef(@RequestParam String tradeRef) {
+        return service.searchByTradeRef(tradeRef).stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
+    @GetMapping("/stats")
+    @Operation(summary = "Get overall trade statistics for dashboard summary cards")
+    public ResponseEntity<com.dbtraining.reconx.dto.TradeStatsResponse> getStats() {
+        return ResponseEntity.ok(service.getStats());
+    }
 }

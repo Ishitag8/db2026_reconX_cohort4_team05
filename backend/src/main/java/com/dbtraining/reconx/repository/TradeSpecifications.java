@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.repository;
 
 import com.dbtraining.reconx.repository.entity.Trade;
+import com.dbtraining.reconx.repository.entity.TradeStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -52,9 +53,17 @@ public final class TradeSpecifications {
     private TradeSpecifications() {}
 
     public static Specification<Trade> hasStatus(String status) {
-        return (root, query, cb) -> status == null || status.isBlank()
-                ? cb.conjunction()
-                : cb.equal(root.get("status"), status);
+        return (root, query, cb) -> {
+            if (status == null || status.isBlank()) {
+                return cb.conjunction();
+            }
+            try {
+                TradeStatus enumStatus = TradeStatus.valueOf(status.toUpperCase());
+                return cb.equal(root.get("status"), enumStatus);
+            } catch (IllegalArgumentException e) {
+                return cb.disjunction(); // status value is invalid, match nothing
+            }
+        };
     }
 
     public static Specification<Trade> tradeDateBetween(LocalDate from, LocalDate to) {

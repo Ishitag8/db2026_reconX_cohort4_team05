@@ -74,7 +74,14 @@ async function request(method, path, body) {
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      sessionStorage.removeItem('reconx-token');
+      sessionStorage.removeItem('reconx-role');
+      window.location.href = '/login';
+    }
+
     let detail = '';
+    const clone = res.clone();
 
     try {
       const err = await res.json();
@@ -84,7 +91,7 @@ async function request(method, path, body) {
         err.error ||
         JSON.stringify(err);
     } catch {
-      detail = await res.text();
+      detail = await clone.text();
     }
 
     throw new Error(`HTTP ${res.status}: ${detail}`);
@@ -133,4 +140,7 @@ export const api = {
 
   audit: (tradeRef) =>
     request('GET', `/v1/audit/trades/${tradeRef}`),
+
+  getStats: () =>
+    request('GET', '/v1/trades/stats'),
 };
