@@ -5,9 +5,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const DataTableContext = createContext({ sort: null, page: 0, size: 20 });
 
 export default function DataTable({ children, sort, page = 0, size = 20, onSortChange }) {
-  // TODO(TICKET-ADV114): wrap `children` in DataTableContext.Provider so the
-  //                     Header / Body / Pagination subcomponents can read
-  //                     sort/page/size/onSortChange without prop drilling.
   return (
     <DataTableContext.Provider value={{ sort, page, size, onSortChange }}>
       <div className="data-table">{children}</div>
@@ -47,45 +44,67 @@ DataTable.Body = function Body({ rows, render }) {
 DataTable.Pagination = function Pagination({ page, totalPages, onChange }) {
   const safeTotalPages = Math.max(1, totalPages);
   const safePage = Math.min(Math.max(0, page), safeTotalPages - 1);
-  const maxVisiblePages = 4;
-  const pages = [];
+  const delta = 2; // Window threshold around current page
+  
+  const range = [];
+  for (let i = 0; i < safeTotalPages; i++) {
+    if (
+      i === 0 ||
+      i === safeTotalPages - 1 ||
+      (i >= safePage - delta && i <= safePage + delta)
+    ) {
+      range.push(i);
+    }
+  }
 
-  if (safeTotalPages <= maxVisiblePages) {
-    for (let index = 0; index < safeTotalPages; index += 1) {
-      pages.push(index);
+  const pages = [];
+  let prev = null;
+  for (const i of range) {
+    if (prev !== null) {
+      if (i - prev === 2) {
+        pages.push(prev + 1);
+      } else if (i - prev > 2) {
+        pages.push('...');
+      }
     }
-  } else if (safePage <= 1) {
-    for (let index = 0; index < maxVisiblePages; index += 1) {
-      pages.push(index);
-    }
-  } else if (safePage >= safeTotalPages - 2) {
-    for (let index = safeTotalPages - maxVisiblePages; index < safeTotalPages; index += 1) {
-      pages.push(index);
-    }
-  } else {
-    pages.push(safePage - 1, safePage, safePage + 1, safePage + 2);
+    pages.push(i);
+    prev = i;
   }
 
   return (
-    <nav className="data-table__pagination" aria-label="Pagination">
-      <button type="button" className="data-table__pagination-nav" disabled={safePage === 0} onClick={() => onChange(safePage - 1)} aria-label="Previous page">
+    <nav className="data-table__pagination" aria-label="Pagination Navigation">
+      <button
+        type="button"
+        className="data-table__pagination-nav"
+        disabled={safePage === 0}
+        onClick={() => onChange(safePage - 1)}
+        aria-label="Previous page"
+      >
         <ChevronLeft size={16} strokeWidth={2.4} />
         <span>Prev</span>
       </button>
 
       <div className="data-table__page-strip" aria-label={`Page ${safePage + 1} of ${safeTotalPages}`}>
-        {pages.map((index) => (
-          <button
-            key={index}
-            type="button"
-            className={`data-table__page-btn ${index === safePage ? 'data-table__page-btn--active' : ''}`}
-            aria-current={index === safePage ? 'page' : undefined}
-            onClick={() => onChange(index)}
-          >
-            {index + 1}
-          </button>
-        ))}
-        {safeTotalPages > maxVisiblePages && safePage < safeTotalPages - 2 && <span className="data-table__ellipsis" aria-hidden="true">…</span>}
+        {pages.map((p, index) => {
+          if (p === '...') {
+            return (
+              <span key={`ellipsis-${index}`} className="data-table__ellipsis" aria-hidden="true">
+                …
+              </span>
+            );
+          }
+          return (
+            <button
+              key={`page-${p}`}
+              type="button"
+              className={`data-table__page-btn ${p === safePage ? 'data-table__page-btn--active' : ''}`}
+              aria-current={p === safePage ? 'page' : undefined}
+              onClick={() => onChange(p)}
+            >
+              {p + 1}
+            </button>
+          );
+        })}
       </div>
 
       <button

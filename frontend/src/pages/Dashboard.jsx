@@ -1,8 +1,9 @@
 // TICKET-ADV120 — useMemo for portfolio-value calc.
 // TICKET-ADV116 — useTradeStream live feed.
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { withAuth } from '@components/withAuth.jsx';
 import { useTradeStream } from '@hooks/useTradeStream.js';
+import { useToast } from '@context/ToastContext.jsx';
 import { LayoutDashboard, ReceiptText, PlusCircle, RefreshCw } from 'lucide-react';
 
 function StatCard({ label, value }) {
@@ -16,6 +17,15 @@ function StatCard({ label, value }) {
 
 function Dashboard() {
   const { trades, isConnected } = useTradeStream();
+  const { success: triggerToastSuccess } = useToast();
+
+  useEffect(() => {
+    const successMsg = sessionStorage.getItem('reconx-login-success');
+    if (successMsg) {
+      triggerToastSuccess('Login successful! Welcome to ReconX.');
+      sessionStorage.removeItem('reconx-login-success');
+    }
+  }, [triggerToastSuccess]);
 
   const portfolioValue = useMemo(
     () => trades.reduce((sum, t) => sum + ((t.quantity !== undefined ? t.quantity : t.qty || 0) * (t.price || 0)), 0),

@@ -245,4 +245,12 @@ public class TradeService {
         page.forEach(TradeService::initLazyRelations);
         return page;
     }
+
+    @Transactional(readOnly = true)
+    public java.util.List<Trade> searchByTradeRef(String tradeRef) {
+        Specification<Trade> spec = refLike(tradeRef);
+        java.util.List<Trade> list = tradeRepo.findAll(spec);
+        list.forEach(TradeService::initLazyRelations);
+        return list;
+    }
 }

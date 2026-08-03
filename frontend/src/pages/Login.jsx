@@ -1,15 +1,25 @@
 // TICKET-ADV072 — Login page exchanging email/password for a JWT.
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@context/AuthContext.jsx';
+import { useToast } from '@context/ToastContext.jsx';
 import { api } from '@services/apiService.js';
 
 export default function Login() {
   const { login } = useAuth();
+  const { error: triggerToastError } = useToast();
   const navigate = useNavigate();
   const [email, setEmail] = useState('admin@db.com');
   const [password, setPassword] = useState('admin123');
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const expiredMsg = sessionStorage.getItem('reconx-auth-message');
+    if (expiredMsg) {
+      triggerToastError(expiredMsg);
+      sessionStorage.removeItem('reconx-auth-message');
+    }
+  }, [triggerToastError]);
 
   async function submit(e) {
     e.preventDefault();
@@ -17,6 +27,7 @@ export default function Login() {
       setError(null);
       const res = await api.login(email, password);
       login(res.token, res.role);
+      sessionStorage.setItem('reconx-login-success', 'true');
       navigate('/');
     } catch (err) {
       setError(err.message || 'Login failed');

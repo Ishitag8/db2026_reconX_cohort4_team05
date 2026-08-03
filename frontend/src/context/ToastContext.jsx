@@ -1,60 +1,37 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const ToastContext = createContext(null);
-const TOAST_TIMEOUT_MS = 3600;
-
-function createToastId() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
-  const timersRef = useRef(new Map());
 
-  const dismiss = useCallback((id) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id));
-
-    const timer = timersRef.current.get(id);
-    if (timer) {
-      clearTimeout(timer);
-      timersRef.current.delete(id);
-    }
+  const removeToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const push = useCallback((type, message) => {
-    const id = createToastId();
-    setToasts((current) => [...current, { id, type, message }]);
+  const addToast = useCallback((message, type = 'success') => {
+    const id = Date.now() + Math.random().toString();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    
+    setTimeout(() => {
+      removeToast(id);
+    }, 4000);
+  }, [removeToast]);
 
-    const timer = setTimeout(() => dismiss(id), TOAST_TIMEOUT_MS);
-    timersRef.current.set(id, timer);
-
-    return id;
-  }, [dismiss]);
-
-  const value = useMemo(() => ({
-    success: (message) => push('success', message),
-    error: (message) => push('error', message),
-    info: (message) => push('info', message),
-    dismiss,
-  }), [dismiss, push]);
-
-  useEffect(() => () => {
-    timersRef.current.forEach((timer) => clearTimeout(timer));
-    timersRef.current.clear();
-  }, []);
+  const success = useCallback((message) => addToast(message, 'success'), [addToast]);
+  const error = useCallback((message) => addToast(message, 'error'), [addToast]);
 
   return (
-    <ToastContext.Provider value={value}>
+    <ToastContext.Provider value={{ addToast, removeToast, success, error }}>
       {children}
-      <div className="toast-viewport" aria-live="polite" aria-atomic="true">
-        {toasts.map((toast) => (
-          <div key={toast.id} className={`toast toast--${toast.type}`} role={toast.type === 'error' ? 'alert' : 'status'}>
-            <span className="toast__message">{toast.message}</span>
-            <button type="button" className="toast__close" onClick={() => dismiss(toast.id)} aria-label="Dismiss notification">
+      <div className="toast-viewport" role="status" aria-live="polite">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast toast--${t.type}`}>
+            <span className="toast__icon">
+              {t.type === 'success' ? '✓' : '⚠️'}
+            </span>
+            <span className="toast__message">{t.message}</span>
+            <button className="toast__close" onClick={() => removeToast(t.id)} aria-label="Dismiss toast">
               ×
             </button>
           </div>
@@ -66,10 +43,8 @@ export function ToastProvider({ children }) {
 
 export function useToast() {
   const context = useContext(ToastContext);
-
   if (!context) {
     throw new Error('useToast must be used within a ToastProvider');
   }
-
   return context;
 }

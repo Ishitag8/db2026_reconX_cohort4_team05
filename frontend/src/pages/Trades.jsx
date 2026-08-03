@@ -4,45 +4,59 @@ import DataTable from '@components/DataTable.jsx';
 import { useDebouncedSearch } from '@hooks/useDebouncedSearch.js';
 import { api } from '@services/apiService.js';
 import { TradeRow } from '@components/TradeRow.jsx';
-import { useToast } from '@context/ToastContext.jsx';
 import { Calendar, Filter, Search } from 'lucide-react';
 
 function Trades() {
   const [status, setStatus] = useState('');
-  const [counterpartyId, setCounterpartyId] = useState('');
+  const [tradeRef, setTradeRef] = useState('');
   const [fromDate, setFromDate] = useState('');
   
-  const debouncedCounterpartyId = useDebouncedSearch(counterpartyId, 300);
+  const debouncedTradeRef = useDebouncedSearch(tradeRef, 300);
   const [page, setPage] = useState(0);
   const [data, setData] = useState({ items: [], totalPages: 0 });
   const [selectedId, setSelectedId] = useState(null);
-  const toast = useToast();
 
   useEffect(() => {
     let active = true;
-    let params = `?page=${page}&size=10`;
-    if (status) params += `&status=${status}`;
-    if (debouncedCounterpartyId) params += `&counterpartyId=${debouncedCounterpartyId}`;
-    if (fromDate) params += `&from=${fromDate}`;
 
-    api.listTrades(params)
-      .then(res => {
-        if (active) {
-          setData(res || { items: [], totalPages: 0 });
-        }
-      })
-      .catch(err => {
-        // eslint-disable-next-line no-console
-        console.error('Failed to list trades:', err);
-        toast.error(err.message || 'Failed to load trades');
-        if (active) {
-          setData({ items: [], totalPages: 0 });
-        }
-      });
+    if (debouncedTradeRef) {
+      api.searchTrade(debouncedTradeRef)
+        .then(res => {
+          if (active) {
+            setData({ items: res || [], totalPages: res && res.length > 0 ? 1 : 0 });
+          }
+        })
+        .catch(err => {
+          // eslint-disable-next-line no-console
+          console.error('Failed to search trade by ref:', err);
+          if (active) {
+            setData({ items: [], totalPages: 0 });
+          }
+        });
+    } else {
+      let params = `?page=${page}&size=10`;
+      if (status) params += `&status=${status}`;
+      if (fromDate) params += `&from=${fromDate}`;
+
+      api.listTrades(params)
+        .then(res => {
+          if (active) {
+            setData(res || { items: [], totalPages: 0 });
+          }
+        })
+        .catch(err => {
+          // eslint-disable-next-line no-console
+          console.error('Failed to list trades:', err);
+          if (active) {
+            setData({ items: [], totalPages: 0 });
+          }
+        });
+    }
+
     return () => {
       active = false;
     };
-  }, [page, status, debouncedCounterpartyId, fromDate, toast]);
+  }, [page, status, debouncedTradeRef, fromDate]);
 
   const handleSelect = useCallback((id) => {
     setSelectedId(id);
@@ -50,7 +64,7 @@ function Trades() {
 
   const clearFilters = useCallback(() => {
     setStatus('');
-    setCounterpartyId('');
+    setTradeRef('');
     setFromDate('');
     setSelectedId(null);
     setPage(0);
@@ -62,9 +76,14 @@ function Trades() {
         <div className="section-card__header">
           <div>
             <h2>Filters</h2>
-            <p>Refine the trade set with status, counterparty, and date criteria.</p>
+            <p>Refine the trade set with status, trade reference, and date criteria.</p>
           </div>
-          <button type="button" className="secondary filter-card__clear" onClick={clearFilters}>
+          <button 
+            type="button" 
+            className="secondary filter-card__clear" 
+            onClick={clearFilters}
+            disabled={!status && !tradeRef && !fromDate}
+          >
             Clear Filters
           </button>
         </div>
@@ -92,16 +111,16 @@ function Trades() {
           </div>
 
           <div className="filter-group">
-            <label htmlFor="counterparty"><Search size={14} strokeWidth={2.2} /> Counterparty</label>
+            <label htmlFor="tradeRef"><Search size={14} strokeWidth={2.2} /> Trade Reference</label>
             <div className="control-shell">
               <span className="control-shell__icon"><Search size={16} strokeWidth={2.2} /></span>
               <input
-                id="counterparty"
-                type="number"
-                placeholder="Enter Counterparty ID"
-                value={counterpartyId}
+                id="tradeRef"
+                type="text"
+                placeholder="EQU-20260803-1234"
+                value={tradeRef}
                 onChange={(e) => {
-                  setCounterpartyId(e.target.value);
+                  setTradeRef(e.target.value);
                   setPage(0);
                 }}
               />
@@ -162,18 +181,6 @@ function Trades() {
           />
         </DataTable>
       </section>
-
-      {selectedId && (
-        <div className="page-card selected-trade-panel">
-          <div className="section-card__header section-card__header--tight">
-            <div>
-              <h2>Selected Trade</h2>
-              <p>Current row selection remains unchanged.</p>
-            </div>
-          </div>
-          <div className="selected-trade-panel__value">Selected Trade ID: <strong>{selectedId}</strong></div>
-        </div>
-      )}
     </section>
   );
 }

@@ -5,6 +5,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from '@context/ThemeContext';
 import { AuthProvider } from '@context/AuthContext';
+import { ToastProvider } from '@context/ToastContext.jsx';
 import Dashboard from './Dashboard';
 
 // Mock window.matchMedia which is missing in jsdom
@@ -40,7 +41,9 @@ function renderWithProviders(ui) {
   return render(
     <AuthProvider>
       <ThemeProvider>
-        <MemoryRouter>{ui}</MemoryRouter>
+        <ToastProvider>
+          <MemoryRouter>{ui}</MemoryRouter>
+        </ToastProvider>
       </ThemeProvider>
     </AuthProvider>
   );

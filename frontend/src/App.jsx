@@ -78,6 +78,11 @@ function App() {
               </Routes>
             </Suspense>
           </main>
+          {showSidebar && (
+            <footer className="layout__footer">
+              <span>&copy; {new Date().getFullYear()} ReconX. All rights reserved. Enterprise Reconciliation Portal &bull; v1.0.0 (Production)</span>
+            </footer>
+          )}
         </div>
       </div>
     </ToastProvider>

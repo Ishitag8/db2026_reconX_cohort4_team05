@@ -76,6 +76,7 @@ public class SecurityConfig {
                                 "/h2/**",
                                 "/error")
                         .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/trades/search").hasAnyRole("VIEWER", "TRADER", "RECON_ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/v1/trades/**")
                         .hasAnyRole("VIEWER", "TRADER", "RECON_ANALYST", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/v1/trades").hasAnyRole("TRADER", "ADMIN")

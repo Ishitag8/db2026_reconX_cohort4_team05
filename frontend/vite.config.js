@@ -14,16 +14,24 @@ export default defineConfig({
       '@pages': fileURLToPath(new URL('./src/pages', import.meta.url)),
       '@context': fileURLToPath(new URL('./src/context', import.meta.url)),
     },
-  },
-  server: {
+  }, server: {
+    host: true,
     port: 5173,
+    allowedHosts: [
+      "localhost",
+      "mainstream-shortly-recorders-prison.trycloudflare.com",
+      "reconx.surajc.in"
+    ],
     proxy: {
-      '/api': { target: 'http://localhost:8081', changeOrigin: true },
+      '/api': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
+      },
     },
   },
   test: {
-    environment: 'jsdom',
     globals: true,
-    setupFiles: './src/test-setup.js',
+    environment: 'jsdom',
+    setupFiles: ['./src/test-setup.js'],
   },
 });

@@ -18,11 +18,11 @@ function TradeRowImpl({ trade, onClick, rowNumber }) {
 }
 
 function areEqual(prev, next) {
-  return prev.trade.id      === next.trade.id
-      && prev.trade.status  === next.trade.status
-      && prev.trade.price   === next.trade.price
-  && prev.rowNumber     === next.rowNumber
-      && prev.onClick       === next.onClick;
+  return prev.trade.id            === next.trade.id
+      && prev.trade.status        === next.trade.status
+      && prev.trade.price         === next.trade.price
+      && prev.rowNumber           === next.rowNumber
+      && prev.onClick             === next.onClick;
 }
 
 export const TradeRow = React.memo(TradeRowImpl, areEqual);

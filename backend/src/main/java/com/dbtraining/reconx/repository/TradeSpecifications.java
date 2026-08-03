@@ -85,7 +85,7 @@ public final class TradeSpecifications {
     public static Specification<Trade> refLike(String pattern) {
         return (root, query, cb) -> pattern == null || pattern.isBlank()
                 ? cb.conjunction()
-                : cb.like(root.get("tradeRef"), pattern + "%");
+                : cb.like(cb.upper(root.get("tradeRef")), pattern.toUpperCase() + "%");
     }
 }
 

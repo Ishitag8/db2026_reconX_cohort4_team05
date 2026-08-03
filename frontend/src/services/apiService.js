@@ -20,6 +20,12 @@ async function request(method, path, body) {
   }
   const res = await fetch(`${BASE}${path}`, options);
   if (!res.ok) {
+    if (res.status === 401) {
+      sessionStorage.removeItem('reconx-token');
+      sessionStorage.removeItem('reconx-role');
+      sessionStorage.setItem('reconx-auth-message', 'Session expired. Please log in again.');
+      window.location.href = '/login';
+    }
     let errorText = `HTTP ${res.status}`;
     try {
       const errData = await res.json();
@@ -42,4 +48,5 @@ export const api = {
   runRecon: (req)            => request('POST', '/v1/recon/run', req),
   reconResults: (jobId)      => request('GET', `/v1/recon/jobs/${jobId}/results`),
   audit: (tradeRef)          => request('GET', `/v1/audit/trades/${tradeRef}`),
+  searchTrade: (tradeRef)    => request('GET', `/v1/trades/search?tradeRef=` + encodeURIComponent(tradeRef)),
 };
