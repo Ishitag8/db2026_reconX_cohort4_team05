@@ -1,6 +1,7 @@
 package com.dbtraining.reconx.observability;
 
 import com.dbtraining.reconx.repository.ReconBreakRepository;
+import com.dbtraining.reconx.repository.entity.ReconBreakStatus;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Gauge;
@@ -53,7 +54,7 @@ public class TradeMetrics {
                 .register(registry);
 
         // TICKET-ADV085 — polled gauge wrapping a repository count.
-        Gauge.builder("recon_break_count", breakRepo, r -> r.countByStatus("OPEN"))
+        Gauge.builder("recon_break_count", breakRepo, r -> r.countByStatus(ReconBreakStatus.OPEN))
                 .description("Open recon breaks")
                 .register(registry);
     }

@@ -117,6 +117,18 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="006-create-revinfo-sequence-if-missing" author="trainer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="revinfo_seq"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="revinfo_seq" startValue="1" incrementBy="50"/>
+        <rollback>
+            <dropSequence sequenceName="revinfo_seq"/>
+        </rollback>
+    </changeSet>
+
     <changeSet id="006-create-envers-tables" author="trainer">
         <validCheckSum>ANY</validCheckSum>
         <createTable tableName="revinfo">
@@ -125,8 +137,6 @@
             </column>
             <column name="revtstmp" type="BIGINT"><constraints nullable="false"/></column>
         </createTable>
-
-        <createSequence sequenceName="revinfo_seq" startValue="1" incrementBy="50"/>
 
         <createTable tableName="trades_aud">
             <column name="id" type="BIGINT"><constraints nullable="false"/>
