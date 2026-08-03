@@ -26,12 +26,21 @@ async function request(method, path, body) {
       sessionStorage.setItem('reconx-auth-message', 'Session expired. Please log in again.');
       window.location.href = '/login';
     }
-    let errorText = `HTTP ${res.status}`;
+
+    let detail = '';
+    const clone = res.clone();
+
     try {
-      const errData = await res.json();
-      if (errData && errData.message) errorText = errData.message;
-    } catch {}
-    throw new Error(errorText);
+      const err = await res.json();
+      const title = err.title ? `${err.title}: ` : '';
+      detail =
+        (title + (err.detail || err.message || err.error || '')) ||
+        JSON.stringify(err);
+    } catch {
+      detail = await clone.text();
+    }
+
+    throw new Error(`Error ${res.status}: ${detail}`);
   }
   if (res.status === 204) {
     return null;
