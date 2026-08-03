@@ -53,7 +53,7 @@ function Dashboard() {
           {trades.length === 0 ? (
             <p>Waiting for live trades...</p>
           ) : (
-            trades.map((t) => {
+            trades.slice(0, 10).map((t) => {
               const sym = t.instrumentSymbol || t.symbol || 'Unknown';
               let currency = '$';
               if (sym.endsWith('.DE')) {

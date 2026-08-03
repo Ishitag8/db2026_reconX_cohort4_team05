@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem('reconx-token', token);
     sessionStorage.setItem('reconx-role', role);
     sessionStorage.removeItem('reconx-session-trades');
+    sessionStorage.setItem('reconx-login-time', new Date().toISOString());
 
     setUser({ token, role });
   };
@@ -54,6 +55,7 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('reconx-token');
     sessionStorage.removeItem('reconx-role');
     sessionStorage.removeItem('reconx-session-trades');
+    sessionStorage.removeItem('reconx-login-time');
 
     setUser(null);
   };

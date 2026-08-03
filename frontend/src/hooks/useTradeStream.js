@@ -21,6 +21,16 @@ export function useTradeStream(url = '/api/v1/trades/stream') {
     sse.onmessage = (e) => {
       try {
         const trade = JSON.parse(e.data);
+        
+        const loginTimeStr = sessionStorage.getItem('reconx-login-time');
+        if (loginTimeStr && trade.createdAt) {
+          const loginTime = new Date(loginTimeStr).getTime();
+          const tradeTime = new Date(trade.createdAt).getTime();
+          if (tradeTime < loginTime) {
+            return;
+          }
+        }
+
         setTrades((prev) => {
           if (prev.some((t) => t.id === trade.id || t.tradeRef === trade.tradeRef)) {
             return prev;
