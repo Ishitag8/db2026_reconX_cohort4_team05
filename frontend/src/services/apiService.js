@@ -64,73 +64,40 @@ function authHeaders() {
 }
 
 async function request(method, path, body) {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders(),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const headers = {
+    'Content-Type': 'application/json',
+    ...authHeaders(),
+  };
 
-  if (!res.ok) {
-    let detail = '';
-
-    try {
-      const err = await res.json();
-      detail =
-        err.detail ||
-        err.message ||
-        err.error ||
-        JSON.stringify(err);
-    } catch {
-      detail = await res.text();
-    }
-
-    throw new Error(`HTTP ${res.status}: ${detail}`);
+  const options = { method, headers };
+  if (body !== undefined && body !== null) {
+    options.body = JSON.stringify(body);
   }
+
+  const res = await fetch(`${BASE}${path}`, options);
+  const contentType = res.headers.get('content-type') ?? '';
 
   if (res.status === 204) {
     return null;
   }
 
-  return res.json();
+  const data = contentType.includes('application/json') ? await res.json() : null;
+
+  if (!res.ok) {
+    const detail = data?.detail ?? data?.message ?? res.statusText;
+    throw new Error(`HTTP ${res.status}: ${detail}`);
+  }
+
+  return data;
 }
 
 export const api = {
-  login: async (email, password) => {
-    const result = await request('POST', '/auth/login', {
-      email,
-      password,
-    });
-
-    if (result.token) {
-      sessionStorage.setItem('reconx-token', result.token);
-    }
-
-    return result;
-  },
-
-  listTrades: (params = '') =>
-    request('GET', `/v1/trades${params}`),
-
-  createTrade: (req) =>
-    request('POST', '/v1/trades', req),
-
-  updateStatus: (id, status) =>
-    request('PATCH', `/v1/trades/${id}/status`, {
-      status,
-    }),
-
-  deleteTrade: (id) =>
-    request('DELETE', `/v1/trades/${id}`),
-
-  runRecon: (req) =>
-    request('POST', '/v1/recon/run', req),
-
-  reconResults: (jobId) =>
-    request('GET', `/v1/recon/jobs/${jobId}/results`),
-
-  audit: (tradeRef) =>
-    request('GET', `/v1/audit/trades/${tradeRef}`),
+  login: (email, password) => request('POST', '/auth/login', { email, password }),
+  listTrades: (params = '') => request('GET', `/v1/trades${params ? `?${params}` : ''}`),
+  createTrade: (req) => request('POST', '/v1/trades', req),
+  updateStatus: (id, status) => request('PATCH', `/v1/trades/${id}/status`, { status }),
+  deleteTrade: (id) => request('DELETE', `/v1/trades/${id}`),
+  runRecon: (req) => request('POST', '/v1/recon/run', req),
+  reconResults: (jobId) => request('GET', `/v1/recon/jobs/${jobId}/results`),
+  audit: (tradeRef) => request('GET', `/v1/audit/trades/${tradeRef}`),
 };

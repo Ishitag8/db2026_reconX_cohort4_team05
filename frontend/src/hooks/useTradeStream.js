@@ -1,23 +1,33 @@
-// useTradeStream() — SSE subscription returning live trades.
+// TICKET-ADV116 — useTradeStream() — SSE subscription returning live trades.
 import { useEffect, useState } from 'react';
-
-const MAX_BUFFER = 200;
 
 export function useTradeStream(url = '/api/v1/trades/stream') {
   const [trades, setTrades] = useState([]);
   const [isConnected, setConnected] = useState(false);
 
   useEffect(() => {
-    const sse = new EventSource(url);
-    sse.onopen  = () => setConnected(true);
-    sse.onerror = () => setConnected(false);
-    sse.onmessage = (e) => {
-      try {
-        const trade = JSON.parse(e.data);
-        setTrades((prev) => [trade, ...prev].slice(0, MAX_BUFFER));
-      } catch { /* ignore malformed payload */ }
+    const source = new EventSource(url);
+
+    source.onopen = () => {
+      setConnected(true);
     };
-    return () => sse.close();
+
+    source.onmessage = (event) => {
+      try {
+        const trade = JSON.parse(event.data);
+        setTrades((prev) => [trade, ...prev].slice(0, 200));
+      } catch {
+        // Ignore invalid payloads.
+      }
+    };
+
+    source.onerror = () => {
+      setConnected(false);
+    };
+
+    return () => {
+      source.close();
+    };
   }, [url]);
 
   return { trades, isConnected };

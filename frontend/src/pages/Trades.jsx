@@ -1,39 +1,62 @@
-// Compound DataTable + useDebouncedSearch driving a paginated trades list.
-import React, { useEffect, useState } from 'react';
+// TICKET-ADV114 — Compound DataTable.
+// TICKET-ADV117 — useDebouncedSearch.
+import React, { useCallback, useEffect, useState } from 'react';
 import { withAuth } from '@components/withAuth.jsx';
 import DataTable from '@components/DataTable.jsx';
+import { TradeRow } from '@components/TradeRow.jsx';
 import { useDebouncedSearch } from '@hooks/useDebouncedSearch.js';
 import { api } from '@services/apiService.js';
 
 function Trades() {
   const [search, setSearch] = useState('');
-  const debounced = useDebouncedSearch(search, 300);
   const [page, setPage] = useState(0);
-  const [data, setData] = useState({ items: [], totalPages: 0 });
+  const [selectedId, setSelectedId] = useState(null);
+  const [data, setData] = useState({ items: [], totalPages: 1 });
+  const debounced = useDebouncedSearch(search, 300);
 
   useEffect(() => {
-    let cancelled = false;
-    const params = new URLSearchParams();
-    params.set('page', String(page));
-    if (debounced) params.set('status', debounced);
+    const query = new URLSearchParams();
+    if (debounced) {
+      query.set('status', debounced);
+    }
+    query.set('page', String(page));
+    query.set('size', '50');
 
-    api.listTrades(`?${params.toString()}`)
-      .then((res) => {
-        if (cancelled) return;
-        if (res && Array.isArray(res.items)) {
-          setData({ items: res.items, totalPages: res.totalPages ?? 0 });
-        } else if (Array.isArray(res)) {
-          setData({ items: res, totalPages: 1 });
-        } else {
-          setData({ items: [], totalPages: 0 });
-        }
+    let active = true;
+    api.listTrades(query.toString())
+      .then((response) => {
+        if (!active) return;
+        const items = (response.content ?? []).map((trade) => ({
+          id: trade.id,
+          tradeRef: trade.tradeRef,
+          symbol: trade.instrumentSymbol,
+          qty: trade.quantity,
+          price: trade.price,
+          status: trade.status,
+        }));
+        setData({
+          items,
+          totalPages: Math.max(1, response.totalPages ?? 1),
+        });
       })
       .catch(() => {
-        if (!cancelled) setData({ items: [], totalPages: 0 });
+        if (!active) return;
+        setData({ items: [], totalPages: 1 });
       });
 
-    return () => { cancelled = true; };
-  }, [page, debounced]);
+    return () => {
+      active = false;
+    };
+  }, [debounced, page]);
+
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(0);
+  };
+
+  const handleRowClick = useCallback((id) => {
+    setSelectedId(id);
+  }, []);
 
   return (
     <section>
@@ -42,9 +65,9 @@ function Trades() {
         aria-label="Filter by status"
         placeholder="status filter (PENDING/MATCHED/…)"
         value={search}
-        onChange={(e) => setSearch(e.target.value.toUpperCase())}
+        onChange={(e) => handleSearchChange(e.target.value.toUpperCase())}
       />
-      <DataTable>
+      <DataTable data={data.items} page={page} pageSize={10} onPageChange={setPage}>
         <DataTable.Header columns={[
           { key: 'tradeRef', label: 'Ref' },
           { key: 'symbol',   label: 'Symbol' },
@@ -53,22 +76,15 @@ function Trades() {
           { key: 'status',   label: 'Status' },
         ]} />
         <DataTable.Body
-          rows={data.items}
-          render={(t) => (
-            <>
-              <span>{t.tradeRef}</span>
-              <span>{t.instrumentSymbol}</span>
-              <span>{t.qty ?? t.quantity}</span>
-              <span>{t.price}</span>
-              <span>{t.status}</span>
-            </>
+          render={(trade) => (
+            <TradeRow
+              trade={trade}
+              selected={selectedId === trade.id}
+              onClick={handleRowClick}
+            />
           )}
         />
-        <DataTable.Pagination
-          page={page}
-          totalPages={Math.max(1, data.totalPages)}
-          onChange={setPage}
-        />
+        <DataTable.Pagination />
       </DataTable>
     </section>
   );
