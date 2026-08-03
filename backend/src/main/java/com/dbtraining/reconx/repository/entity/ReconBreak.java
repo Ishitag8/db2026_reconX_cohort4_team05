@@ -21,8 +21,9 @@ public class ReconBreak {
     @Column(name = "discrepancy_type", nullable = false, length = 30)
     private String discrepancyType;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status = "OPEN";
+    private ReconBreakStatus status = ReconBreakStatus.OPEN;
 
     @Column(name = "detected_at")
     private Instant detectedAt;
@@ -38,7 +39,7 @@ public class ReconBreak {
     public Long getId()                { return id; }
     public Long getTradeId()           { return tradeId; }
     public String getDiscrepancyType() { return discrepancyType; }
-    public String getStatus()          { return status; }
+    public ReconBreakStatus getStatus() { return status; }
     public Instant getDetectedAt()     { return detectedAt; }
     public Instant getResolvedAt()     { return resolvedAt; }
     public String getResolutionNote()  { return resolutionNote; }
@@ -47,7 +48,7 @@ public class ReconBreak {
     public void setDiscrepancyType(String v)    { this.discrepancyType = v; }
 
     public void resolve(String note) {
-        this.status = "RESOLVED";
+        this.status = ReconBreakStatus.RESOLVED;
         this.resolvedAt = Instant.now();
         this.resolutionNote = note;
     }

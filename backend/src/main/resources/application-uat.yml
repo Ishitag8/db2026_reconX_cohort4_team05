@@ -3,9 +3,9 @@
 # =============================================================================
 spring:
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:reconx}
-    username: ${POSTGRES_USER:reconx_user}
-    password: ${POSTGRES_PASSWORD:reconx_pass}
+    url: jdbc:postgresql://postgres:5432/reconx
+    username: reconx_uat
+    password: reconx_uat
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
