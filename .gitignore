@@ -30,3 +30,12 @@ logs/
 
 # Operating system files
 Thumbs.db
+
+
+# Spring Boot build artifacts
+BOOT-INF/
+META-INF/
+
+# Maven build output
+target/
+**/target/
