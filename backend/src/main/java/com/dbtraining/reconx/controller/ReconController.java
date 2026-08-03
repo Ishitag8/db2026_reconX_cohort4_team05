@@ -34,29 +34,18 @@ public class ReconController {
 
     @PostMapping("/run")
     @Operation(summary = "Trigger a reconciliation job (async)")
-    public ResponseEntity<Map<String, String>> runRecon(
-            @Valid @RequestBody ReconRunRequest req) {
-
+    public ResponseEntity<Map<String, String>> runRecon(@Valid @RequestBody ReconRunRequest req) {
         String jobId = UUID.randomUUID().toString();
-
-        return ResponseEntity
-                .accepted()
-                .header("Location", "/api/v1/recon/jobs/" + jobId + "/results")
-                .body(Map.of(
-                        "jobId", jobId,
-                        "status", "QUEUED"
-                ));
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(Map.of("jobId", jobId, "status", "QUEUED"));
     }
 
     @GetMapping("/jobs/{jobId}/results")
     @Operation(summary = "Get results for a recon job")
     public List<ReconBreak> results(@PathVariable String jobId) {
-        // TODO(TICKET-ADV069): once recon_jobs + recon_breaks tables are wired,
-        //   return breaks.findByJobId(jobId). Day-0 returns an empty list so
-        //   the React breaks-table renders "no breaks" gracefully.
-        return breaks.findAll();
+        return Collections.emptyList();
     }
-
+ 
     @PutMapping("/results/{id}/resolve")
     @Operation(summary = "Mark a recon break as RESOLVED with a note")
     public ResponseEntity<ReconBreak> resolve(
