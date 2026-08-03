@@ -26,6 +26,9 @@ public record TradeEvent(
         String before,
         String after
 ) {
+    /**
+ * Supported trade lifecycle events published to the Kafka topic.
+ */
     public enum EventType {
         TRADE_CREATED, TRADE_UPDATED, TRADE_CANCELLED
     }
