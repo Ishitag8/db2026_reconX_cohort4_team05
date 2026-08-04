@@ -1,6 +1,5 @@
 ### ReconX End-to-End API Pipeline Demo
-# This file is compatible with IntelliJ HTTP Client and VS Code REST Client.
-# Run each request in sequence. Variables are extracted and passed automatically.
+
 
 @host = http://localhost:8081/api
 
@@ -25,7 +24,7 @@ Authorization: Bearer {{auth_token}}
 Content-Type: application/json
 
 {
-  "tradeRef": "EQU-20260804-1236",
+  "tradeRef": "EQU-20260804-1238",
   "instrumentId": 1,
   "counterpartyId": 1,
   "assetClass": "EQUITY",
@@ -54,8 +53,8 @@ Content-Type: application/json
   "counterpartyId": 1,
   "assetClass": "EQUITY",
   "side": "BUY",
-  "quantity": 500,
-  "price": 200.00,
+  "quantity": 600,
+  "price": 150.00,
   "tradeDate": "2026-08-03"
 }
 

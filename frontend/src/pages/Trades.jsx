@@ -12,7 +12,14 @@ function Trades() {
   const [data, setData] = useState({ items: [], totalPages: 0 });
 
   const sortedItems = useMemo(() => {
-    return [...data.items].sort((a, b) => b.id - a.id);
+    return [...data.items].sort((a, b) => {
+      const timeA = new Date(a.modifiedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.modifiedAt || b.createdAt || 0).getTime();
+      if (timeB !== timeA) {
+        return timeB - timeA;
+      }
+      return b.id - a.id;
+    });
   }, [data.items]);
 
   useEffect(() => {
