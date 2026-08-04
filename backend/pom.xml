@@ -236,7 +236,29 @@
                 </configuration>
             </plugin>
 
-            <!-- ADV046 / ADV156 — JaCoCo coverage gate (>=85%) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                    <failOnViolation>true</failOnViolation>
+                    <violationSeverity>warning</violationSeverity>
+                    <consoleOutput>true</consoleOutput>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- ADV046 / ADV156 — JaCoCo coverage gate (>=85% line, >=70% branch) -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -259,15 +281,21 @@
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
-                                    <includes>
-                                        <include>com.dbtraining.reconx.service.*</include>
-                                        <include>com.dbtraining.reconx.repository.*</include>
-                                    </includes>
+                                    <excludes>
+                                        <exclude>**/dto/**</exclude>
+                                        <exclude>**/config/**</exclude>
+                                        <exclude>**/ReconxApplication.class</exclude>
+                                    </excludes>
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
                                             <minimum>0.85</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.70</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

@@ -3,7 +3,6 @@ package com.dbtraining.reconx.dto;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * TICKET-ADV053 — Tiny wrapper that flattens Spring Data Page<T> into a

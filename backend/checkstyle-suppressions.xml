@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- Legacy entity and controller classes still use older import/layout patterns. -->
+    <suppress files="src/main/java/com/dbtraining/reconx/config/OpenApiConfig.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/controller/AuditController.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/controller/AuthController.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/controller/ReconController.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/controller/TradeController.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/observability/MdcFilter.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/observability/TradesByStatusGauge.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/repository/entity/AuditLogEntry.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/repository/entity/Counterparty.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/repository/entity/Instrument.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/repository/entity/ReconBreak.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/repository/entity/Trade.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/security/JwtAuthenticationFilter.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/service/TradeAnalyticsService.java" checks=".*"/>
+    <suppress files="src/main/java/com/dbtraining/reconx/service/TradeService.java" checks=".*"/>
+</suppressions>
