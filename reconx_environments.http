@@ -1,0 +1,99 @@
+### ReconX IntelliJ HTTP Client Pipeline
+#
+# IntelliJ will automatically detect 'http-client.env.json' in this folder.
+# Click the Run Gutter Icon and select "Run with dev", "Run with uat", or "Run with prod".
+
+### STEP 1: Log in to acquire the JWT token
+POST {{hosturl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{username}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("auth_token", response.body.token);
+    client.log("Token acquired: " + response.body.token.substring(0, 20) + "...");
+%}
+
+
+### STEP 2: Book a New Trade (Status initially PENDING)
+POST {{hosturl}}/v1/trades
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "tradeRef": "EQU-20260804-1239",
+  "instrumentId": 1,
+  "counterpartyId": 1,
+  "assetClass": "EQUITY",
+  "side": "BUY",
+  "quantity": 500,
+  "price": 150.00,
+  "tradeDate": "2026-08-04"
+}
+
+> {%
+    client.global.set("trade_id", response.body.id);
+    client.global.set("trade_ref", response.body.tradeRef);
+    client.log("Created Trade ID: " + response.body.id + " | Ref: " + response.body.tradeRef);
+%}
+
+
+### STEP 3: Perform Full Update (Modify Quantity and Price)
+# This simulates a booking modification (e.g. price correction to 155.00).
+PUT {{hosturl}}/v1/trades/{{trade_id}}
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "tradeRef": "{{trade_ref}}",
+  "instrumentId": 1,
+  "counterpartyId": 1,
+  "assetClass": "EQUITY",
+  "side": "BUY",
+  "quantity": 600,
+  "price": 150.00,
+  "tradeDate": "2026-08-03"
+}
+
+
+### STEP 4: Update Trade Status (PATCH to DISPUTED)
+# This simulates a status transition during exception/break management.
+PATCH {{hosturl}}/v1/trades/{{trade_id}}/status
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "status": "MATCHED"
+}
+
+
+### STEP 5: Trigger Reconciliation Run for the Trade's Date Range
+# Launches matching logic asynchronously in the background.
+POST {{hosturl}}/v1/recon/run
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "from": "2026-08-01",
+  "to": "2026-08-05"
+}
+
+> {%
+    client.global.set("job_id", response.body.jobId);
+    client.log("Reconciliation triggered! Job ID: " + response.body.jobId);
+%}
+
+
+### STEP 6: Fetch Reconciliation Job Results
+# Retrieves the list of breaks detected for this job run.
+GET {{hosturl}}/v1/recon/jobs/{{job_id}}/results
+Authorization: Bearer {{auth_token}}
+
+
+### STEP 7: Fetch the Audit Log History for our Trade
+# Retrieves the full history showing every lifecycle modification captured by Kafka.
+GET {{hosturl}}/v1/audit/trades/{{trade_ref}}
+Authorization: Bearer {{auth_token}}
