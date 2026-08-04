@@ -1,5 +1,5 @@
-// TICKET-ADV120 — useMemo for portfolio-value calc.
-// TICKET-ADV116 — useTradeStream live feed.
+// useMemo for portfolio-value calc.
+// useTradeStream live feed.
 import React, { useMemo } from 'react';
 import { withAuth } from '@components/withAuth.jsx';
 import { useTradeStream } from '@hooks/useTradeStream.js';

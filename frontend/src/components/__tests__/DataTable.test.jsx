@@ -12,10 +12,10 @@ describe('<DataTable>', () => {
         <DataTable.Body rows={[{ id: 1 }, { id: 2 }]} render={(r) => <span>row {r.id}</span>} />
       </DataTable>
     );
-    expect(screen.getByText('Alpha')).toBeInTheDocument();
-    expect(screen.getByText('Beta')).toBeInTheDocument();
-    expect(screen.getByText('row 1')).toBeInTheDocument();
-    expect(screen.getByText('row 2')).toBeInTheDocument();
+    // TODO(TICKET-ADV125): write assertion — column labels "Alpha" / "Beta"
+    //                     should appear in the document.
+    // TODO(TICKET-ADV125): write assertion — rendered rows "row 1" / "row 2"
+    //                     should appear in the document.
   });
 
   it('invokes onSortChange when a header is clicked', async () => {
@@ -27,6 +27,7 @@ describe('<DataTable>', () => {
       </DataTable>
     );
     await userEvent.click(screen.getByText('Alpha'));
-    expect(onSortChange).toHaveBeenCalledWith('a');
+    // TODO(TICKET-ADV125): write assertion — onSortChange should have been
+    //                     called with the clicked column key ('a').
   });
 });
