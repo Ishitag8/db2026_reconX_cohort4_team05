@@ -29,7 +29,7 @@
 // TICKET-ADV112 — AuthContext used by withAuth HOC; JWT persisted in sessionStorage.
 import React, { createContext, useContext, useState } from 'react';
 
-const AuthContext = createContext({
+export const AuthContext = createContext({
   user: null,
   login: () => {},
   logout: () => {},
@@ -45,6 +45,8 @@ export function AuthProvider({ children }) {
   const login = (token, role) => {
     sessionStorage.setItem('reconx-token', token);
     sessionStorage.setItem('reconx-role', role);
+    sessionStorage.removeItem('reconx-session-trades');
+    sessionStorage.setItem('reconx-login-time', new Date().toISOString());
 
     setUser({ token, role });
   };
@@ -52,6 +54,8 @@ export function AuthProvider({ children }) {
   const logout = () => {
     sessionStorage.removeItem('reconx-token');
     sessionStorage.removeItem('reconx-role');
+    sessionStorage.removeItem('reconx-session-trades');
+    sessionStorage.removeItem('reconx-login-time');
 
     setUser(null);
   };

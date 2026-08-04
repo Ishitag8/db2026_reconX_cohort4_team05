@@ -31,7 +31,7 @@ curl -i -X POST http://localhost:8081/api/auth/login \
 # Copy the token value from the response in Step 3 and paste it here:
 
 # For Git Bash / Linux / macOS Shell:
-TOKEN="YOUR_PASTED_JWT_TOKEN_HERE"
+TOKEN="eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBkYi5jb20iLCJpc3MiOiJyZWNvbngiLCJpYXQiOjE3ODU3NzAxMDgsImV4cCI6MTc4NTc3MzcwOCwicm9sZSI6IkFETUlOIn0.joE-YFYk6dHuCuz7PNs9VHHQyqZ8WYx1Pao4PzvHe-A"
 
 # For PowerShell:
 $TOKEN="YOUR_PASTED_JWT_TOKEN_HERE"
@@ -96,13 +96,14 @@ curl.exe -i -X GET http://localhost:8081/api/v1/audit/trades/TRD-2026-000002/eve
 # STEP 10: Trigger Reconciliation Job Run (POST)
 # -----------------------------------------------------------------------------
 # Git Bash / Linux:
+# (Note: "counterpartyId" is optional and can be omitted)
 curl -i -X POST http://localhost:8081/api/v1/recon/run \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"asOfDate":"2026-07-31"}'
+  -d '{"from":"2026-07-01","to":"2026-07-31","counterpartyId":1}'
 
 # PowerShell:
-curl.exe -i -X POST http://localhost:8081/api/v1/recon/run -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"asOfDate":"2026-07-31"}'
+curl.exe -i -X POST http://localhost:8081/api/v1/recon/run -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"from":"2026-07-01","to":"2026-07-31","counterpartyId":1}'
 
 # -----------------------------------------------------------------------------
 # STEP 11: Get Reconciliation Job Results (GET)

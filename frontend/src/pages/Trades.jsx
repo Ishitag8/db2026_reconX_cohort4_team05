@@ -1,6 +1,5 @@
-// TICKET-ADV114 — Compound DataTable.
-// TICKET-ADV117 — useDebouncedSearch.
-import React, { useCallback, useEffect, useState } from 'react';
+// Compound DataTable + useDebouncedSearch driving a paginated trades list.
+import React, { useEffect, useState, useMemo } from 'react';
 import { withAuth } from '@components/withAuth.jsx';
 import DataTable from '@components/DataTable.jsx';
 import { TradeRow } from '@components/TradeRow.jsx';
@@ -13,6 +12,17 @@ function Trades() {
   const [selectedId, setSelectedId] = useState(null);
   const [data, setData] = useState({ items: [], totalPages: 1 });
   const debounced = useDebouncedSearch(search, 300);
+
+  const sortedItems = useMemo(() => {
+    return [...data.items].sort((a, b) => {
+      const timeA = new Date(a.modifiedAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.modifiedAt || b.createdAt || 0).getTime();
+      if (timeB !== timeA) {
+        return timeB - timeA;
+      }
+      return b.id - a.id;
+    });
+  }, [data.items]);
 
   useEffect(() => {
     const query = new URLSearchParams();
@@ -76,12 +86,15 @@ function Trades() {
           { key: 'status',   label: 'Status' },
         ]} />
         <DataTable.Body
-          render={(trade) => (
-            <TradeRow
-              trade={trade}
-              selected={selectedId === trade.id}
-              onClick={handleRowClick}
-            />
+          rows={sortedItems}
+          render={(t) => (
+            <>
+              <span>{t.tradeRef}</span>
+              <span>{t.instrumentSymbol}</span>
+              <span>{t.qty ?? t.quantity}</span>
+              <span>{t.price}</span>
+              <span>{t.status}</span>
+            </>
           )}
         />
         <DataTable.Pagination />

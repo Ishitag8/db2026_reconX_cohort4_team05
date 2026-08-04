@@ -33,9 +33,12 @@ public interface TradeRepository
         """)
     Page<Trade> findByFilters(@Param("from") LocalDate from,
                               @Param("to") LocalDate to,
-                              @Param("status") TradeStatus status,
+                              @Param("status") String status,
                               @Param("counterpartyId") Long counterpartyId,
                               Pageable pageable);
 
     long countByStatus(TradeStatus status);
+
+    @Query("SELECT SUM(t.price * t.quantity) FROM Trade t")
+    java.math.BigDecimal sumPortfolioValue();
 }

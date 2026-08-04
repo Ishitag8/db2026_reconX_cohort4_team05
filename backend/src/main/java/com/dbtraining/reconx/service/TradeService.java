@@ -5,13 +5,14 @@ import com.dbtraining.reconx.dto.TradeRequest;
 import com.dbtraining.reconx.exception.DuplicateTradeRefException;
 import com.dbtraining.reconx.exception.InvalidTradeException;
 import com.dbtraining.reconx.exception.TradeNotFoundException;
-import com.dbtraining.reconx.kafka.TradeEventProducer;
 import com.dbtraining.reconx.observability.TradeMetrics;
 import com.dbtraining.reconx.repository.CounterpartyRepository;
 import com.dbtraining.reconx.repository.InstrumentRepository;
 import com.dbtraining.reconx.repository.TradeRepository;
 import com.dbtraining.reconx.repository.entity.Trade;
 import com.dbtraining.reconx.repository.entity.TradeStatus;
+import com.dbtraining.reconx.kafka.TradeEventProducer;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,8 +25,6 @@ import java.util.UUID;
 
 import static com.dbtraining.reconx.repository.TradeSpecifications.*;
 
-
-
 /**
  * ============================================================================
  * TICKET-ADV064 — TradeService.create (POST endpoint backing)
@@ -37,8 +36,6 @@ import static com.dbtraining.reconx.repository.TradeSpecifications.*;
  * TICKET-ADV055/ADV056 — list() uses Specifications + filter query
  * ============================================================================
  */
-
-
 @Service
 @Transactional
 public class TradeService {
@@ -48,17 +45,20 @@ public class TradeService {
     private final InstrumentRepository instRepo;
     private final TradeEventProducer events;
     private final TradeMetrics metrics;
+    private final ApplicationEventPublisher publisher;
 
     public TradeService(TradeRepository tradeRepo,
                         CounterpartyRepository cpRepo,
                         InstrumentRepository instRepo,
                         TradeEventProducer events,
-                        TradeMetrics metrics) {
+                        TradeMetrics metrics,
+                        ApplicationEventPublisher publisher) {
         this.tradeRepo = tradeRepo;
         this.cpRepo = cpRepo;
         this.instRepo = instRepo;
         this.events = events;
         this.metrics = metrics;
+        this.publisher = publisher;
     }
 
     private static void initLazyRelations(Trade trade) {
@@ -73,7 +73,6 @@ public class TradeService {
     }
 
     public Trade create(TradeRequest req, String actor) {
-
         tradeRepo.findByTradeRef(req.tradeRef()).ifPresent(t -> {
             throw new DuplicateTradeRefException(req.tradeRef());
         });
@@ -115,11 +114,12 @@ public class TradeService {
                 "status=" + saved.getStatus()
         ));
 
+        publisher.publishEvent(saved);
+
         return saved;
     }
 
     public Trade update(Long id, TradeRequest req, String actor) {
-
         Trade trade = tradeRepo.findById(id)
                 .orElseThrow(() ->
                         new TradeNotFoundException("id " + id));
@@ -159,13 +159,13 @@ public class TradeService {
                         + ",price=" + saved.getPrice()
         ));
 
+        publisher.publishEvent(saved);
+
         return saved;
     }
 
     public Trade updateStatus(Long id, String status, String actor) {
-
         TradeStatus newStatus;
-
         try {
             newStatus = TradeStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException | NullPointerException ex) {
@@ -193,17 +193,17 @@ public class TradeService {
                 "status=" + saved.getStatus()
         ));
 
+        publisher.publishEvent(saved);
+
         return saved;
     }
 
     public void softDelete(Long id, String actor) {
-
         Trade trade = tradeRepo.findById(id)
                 .orElseThrow(() ->
                         new TradeNotFoundException("id=" + id));
 
         trade.softDelete();
-
         tradeRepo.save(trade);
 
         events.publish(new TradeEvent(
@@ -215,6 +215,8 @@ public class TradeService {
                 null,
                 null
         ));
+
+        publisher.publishEvent(trade);
     }
 
     @Transactional(readOnly = true)
@@ -223,7 +225,6 @@ public class TradeService {
                             String status,
                             Long counterpartyId,
                             Pageable pageable) {
-
         Specification<Trade> spec = Specification
                 .where(tradeDateBetween(from, to))
                 .and(hasStatus(status))
@@ -232,5 +233,26 @@ public class TradeService {
         Page<Trade> page = tradeRepo.findAll(spec, pageable);
         page.forEach(TradeService::initLazyRelations);
         return page;
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<Trade> searchByTradeRef(String tradeRef) {
+        Specification<Trade> spec = refLike(tradeRef);
+        java.util.List<Trade> list = tradeRepo.findAll(spec);
+        list.forEach(TradeService::initLazyRelations);
+        return list;
+    }
+
+    @Transactional(readOnly = true)
+    public com.dbtraining.reconx.dto.TradeStatsResponse getStats() {
+        java.math.BigDecimal portfolio = tradeRepo.sumPortfolioValue();
+        if (portfolio == null) {
+            portfolio = java.math.BigDecimal.ZERO;
+        }
+        long total = tradeRepo.count();
+        long matched = tradeRepo.countByStatus(TradeStatus.MATCHED);
+        long openBreaks = tradeRepo.countByStatus(TradeStatus.UNMATCHED)
+                + tradeRepo.countByStatus(TradeStatus.DISPUTED);
+        return new com.dbtraining.reconx.dto.TradeStatsResponse(portfolio, total, matched, openBreaks);
     }
 }

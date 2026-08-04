@@ -35,7 +35,18 @@ function AddTrade() {
         });
 
   async function onSubmit(values) {
-    await api.createTrade(values);
+    const newTrade = await api.createTrade(values);
+    try {
+      const saved = sessionStorage.getItem('reconx-session-trades');
+      const list = saved ? JSON.parse(saved) : [];
+      if (!list.some((t) => t.id === newTrade.id || t.tradeRef === newTrade.tradeRef)) {
+        list.unshift(newTrade);
+        sessionStorage.setItem('reconx-session-trades', JSON.stringify(list));
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to save session trade', e);
+    }
     reset();
   }
 
@@ -90,19 +101,6 @@ function AddTrade() {
           <input type="date" {...register('tradeDate')} />
         </label>
         {errors.tradeDate && <p role="alert" className="form-error">{errors.tradeDate.message}</p>}
-
-        <label>Instrument id   <input type="number" {...register('instrumentId')} /></label>
-        <label>Counterparty id <input type="number" {...register('counterpartyId')} /></label>
-        <label>Asset class    <select {...register('assetClass')}>
-          <option value="EQUITY">EQUITY</option><option value="FX">FX</option>
-          <option value="BOND">BOND</option><option value="DERIVATIVE">DERIVATIVE</option>
-        </select></label>
-        <label>Side <select {...register('side')}>
-          <option value="BUY">BUY</option><option value="SELL">SELL</option>
-        </select></label>
-        <label>Quantity  <input type="number" step="0.0001" {...register('quantity')} /></label>
-        <label>Price     <input type="number" step="0.0001" {...register('price')} /></label>
-        <label>Trade date<input type="date" {...register('tradeDate')} /></label>
 
         <button disabled={isSubmitting} type="submit">Submit</button>
       </form>
